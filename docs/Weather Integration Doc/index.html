@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WeatherFreight — Parcel Cost Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --warn: #ffcc00;
+    --danger: #ff4444;
+    --success: #00e676;
+    --text: #e8f0fe;
+    --muted: #6b7fa3;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 2rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .badge {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.75rem;
+    border-radius: 2px;
+  }
+
+  /* Layout */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .card:hover { border-color: rgba(0,212,255,0.3); }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0.5;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+  }
+
+  /* Form */
+  .form-group { margin-bottom: 1.25rem; }
+
+  label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    padding: 0.65rem 0.9rem;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
+  }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  /* Button */
+  button {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.5rem;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  button:hover { background: #33ddff; }
+  button:active { transform: scale(0.98); }
+
+  button.loading {
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  /* Weather display */
+  .weather-display {
+    display: none;
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  .weather-display.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .weather-main {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .weather-icon {
+    font-size: 3.5rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 12px rgba(0,212,255,0.3));
+  }
+
+  .weather-temp {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .weather-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    text-transform: capitalize;
+  }
+
+  .weather-location {
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+  }
+
+  /* Condition alerts */
+  .conditions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+
+  .condition-tag {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.65rem;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+
+  .tag-ok    { color: var(--success); border-color: rgba(0,230,118,0.3); background: rgba(0,230,118,0.05); }
+  .tag-warn  { color: var(--warn);    border-color: rgba(255,204,0,0.3);  background: rgba(255,204,0,0.05); }
+  .tag-bad   { color: var(--danger);  border-color: rgba(255,68,68,0.3);  background: rgba(255,68,68,0.05); }
+
+  /* Price breakdown */
+  .price-section { margin-top: 1.5rem; }
+
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .price-row:last-child { border-bottom: none; }
+
+  .price-row.total {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    padding-top: 1rem;
+    margin-top: 0.25rem;
+  }
+
+  .price-val { color: var(--text); font-weight: 500; }
+  .price-val.up   { color: var(--danger); }
+  .price-val.down { color: var(--success); }
+  .price-val.warn { color: var(--warn); }
+
+  .multiplier-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    margin-left: 0.5rem;
+    font-weight: 600;
+  }
+
+  .mult-ok   { background: rgba(0,230,118,0.15); color: var(--success); }
+  .mult-warn { background: rgba(255,204,0,0.15);  color: var(--warn); }
+  .mult-bad  { background: rgba(255,68,68,0.15);  color: var(--danger); }
+
+  /* Speed adjustment bar */
+  .speed-bar-wrap { margin: 1.25rem 0; }
+
+  .speed-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .speed-bar-track {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .speed-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1), background 0.5s;
+  }
+
+  /* Full width card */
+  .card-full {
+    grid-column: 1 / -1;
+  }
+
+  .explanation {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.7;
+    padding: 1rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    border-left: 3px solid var(--accent);
+    margin-top: 1rem;
+  }
+
+  .explanation strong { color: var(--text); }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .empty-icon { font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.4; }
+
+  /* Error */
+  .error-msg {
+    background: rgba(255,68,68,0.08);
+    border: 1px solid rgba(255,68,68,0.3);
+    color: var(--danger);
+    font-size: 0.78rem;
+    padding: 0.75rem 1rem;
+    border-radius: 3px;
+    margin-top: 0.75rem;
+    display: none;
+  }
+
+  .error-msg.visible { display: block; }
+
+  /* Formula box */
+  .formula {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    border-radius: 3px;
+    color: var(--accent);
+    line-height: 1.8;
+    margin-top: 1rem;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.25rem 0;
+  }
+
+  select option { background: var(--surface); }
+
+  .tag { display: inline-block; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <div class="logo">Weather<span>Freight</span></div>
+      <div style="font-size:0.72rem; color:var(--muted); margin-top:0.4rem; letter-spacing:0.05em;">
+        Weather-aware parcel delivery cost simulator
+      </div>
+    </div>
+    <div class="badge">Feature Branch Demo · Open-Meteo API</div>
+  </header>
+
+  <div class="grid">
+
+    <!-- INPUT CARD -->
+    <div class="card">
+      <div class="card-title">Parcel & Route Details</div>
+
+      <div class="form-group">
+        <label>Origin City</label>
+        <input type="text" id="originCity" placeholder="e.g. Yaoundé" value="Yaoundé"/>
+      </div>
+
+      <div class="form-group">
+        <label>Destination City</label>
+        <input type="text" id="destCity" placeholder="e.g. Douala" value="Douala"/>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Weight (kg)</label>
+          <input type="number" id="weight" value="5" min="0.1" step="0.1"/>
+        </div>
+        <div class="form-group">
+          <label>Fragility (1–10)</label>
+          <input type="number" id="fragility" value="4" min="1" max="10"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Distance (km)</label>
+        <input type="number" id="distance" value="250" min="1"/>
+      </div>
+
+      <div class="form-group">
+        <label>Base Price (XAF)</label>
+        <input type="number" id="basePrice" value="5000" min="100"/>
+      </div>
+
+      <button id="calcBtn" onclick="calculate()">Calculate Weather Impact</button>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+    <!-- WEATHER + PRICE CARD -->
+    <div class="card">
+      <div class="card-title">Live Weather — Origin</div>
+
+      <div id="emptyState" class="empty">
+        <div class="empty-icon">🌍</div>
+        Enter details and calculate to see weather impact
+      </div>
+
+      <div class="weather-display" id="weatherDisplay">
+
+        <div class="weather-main">
+          <div class="weather-icon" id="wIcon">🌤️</div>
+          <div>
+            <div class="weather-location" id="wLocation">—</div>
+            <div class="weather-temp" id="wTemp">—°C</div>
+            <div class="weather-desc" id="wDesc">—</div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-val" id="wWind">—</div>
+            <div class="stat-label">Wind km/h</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val" id="wHumid">—</div>
+            <div class="stat-label">Humidity %</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val" id="wRain">—</div>
+            <div class="stat-label">Rain mm</div>
+          </div>
+        </div>
+
+        <div class="card-title" style="margin-bottom:0.75rem;">Active Conditions</div>
+        <div class="conditions" id="conditionTags"></div>
+
+        <div class="speed-bar-wrap">
+          <div class="speed-label">
+            <span>Adjusted Delivery Speed</span>
+            <span id="speedVal">—</span>
+          </div>
+          <div class="speed-bar-track">
+            <div class="speed-bar-fill" id="speedBar" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="card-title" style="margin-bottom:0.75rem;">Price Breakdown</div>
+        <div class="price-section" id="priceBreakdown"></div>
+
+      </div>
+    </div>
+
+    <!-- FORMULA EXPLANATION -->
+    <div class="card card-full">
+      <div class="card-title">How Weather Affects the Price — Formula & Logic</div>
+
+      <div class="explanation">
+        The base cost formula from the project documentation is:
+        <br><br>
+        <strong>final_price = base_price × distance_factor + (fragility_level × 500)</strong>
+        <br><br>
+        The weather integration introduces a <strong>weather surcharge multiplier</strong> on top of this. Each adverse condition
+        adds to the multiplier — heavy rain, strong winds, extreme cold or heat, and low visibility all
+        increase handling risk, slow down the vehicle, and may require special packaging for fragile items.
+        <br><br>
+        The <strong>speed adjustment</strong> combines the existing fragility formula with a weather penalty:
+        <br>
+        <strong>adjusted_speed = base_speed × (1 − fragility/15) × (1 − weather_penalty)</strong>
+        <br><br>
+        A higher weather penalty means slower delivery and higher cost — this feeds directly into the ETA
+        and the surcharge shown above.
+      </div>
+
+      <div class="formula" id="formulaBox">Enter details above to see the live formula output.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const GEOCODE_URL = 'https://geocoding-api.open-meteo.com/v1/search';
+const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function hideError() {
+  document.getElementById('errorMsg').classList.remove('visible');
+}
+
+async function geocode(city) {
+  const r = await fetch(`${GEOCODE_URL}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+  const d = await r.json();
+  if (!d.results || d.results.length === 0) throw new Error(`City not found: "${city}"`);
+  return d.results[0];
+}
+
+async function getWeather(lat, lon) {
+  const params = new URLSearchParams({
+    latitude: lat, longitude: lon,
+    current: 'temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code',
+    wind_speed_unit: 'kmh',
+    timezone: 'auto'
+  });
+  const r = await fetch(`${WEATHER_URL}?${params}`);
+  return await r.json();
+}
+
+function weatherCodeInfo(code) {
+  if (code === 0) return { desc: 'Clear sky', icon: '☀️' };
+  if (code <= 3) return { desc: 'Partly cloudy', icon: '⛅' };
+  if (code <= 9) return { desc: 'Foggy', icon: '🌫️' };
+  if (code <= 19) return { desc: 'Drizzle', icon: '🌦️' };
+  if (code <= 29) return { desc: 'Rain', icon: '🌧️' };
+  if (code <= 39) return { desc: 'Snow', icon: '❄️' };
+  if (code <= 49) return { desc: 'Fog', icon: '🌫️' };
+  if (code <= 59) return { desc: 'Drizzle', icon: '🌦️' };
+  if (code <= 69) return { desc: 'Rain', icon: '🌧️' };
+  if (code <= 79) return { desc: 'Snow', icon: '🌨️' };
+  if (code <= 84) return { desc: 'Rain showers', icon: '⛈️' };
+  if (code <= 94) return { desc: 'Thunderstorm', icon: '⛈️' };
+  return { desc: 'Severe storm', icon: '🌪️' };
+}
+
+function analyzeConditions(weather, fragility) {
+  const c = weather.current;
+  const temp = c.temperature_2m;
+  const wind = c.wind_speed_10m;
+  const rain = c.precipitation;
+  const humid = c.relative_humidity_2m;
+  const code  = c.weather_code;
+
+  let penalty = 0;
+  let surcharge = 0;
+  let tags = [];
+
+  // Wind
+  if (wind > 80) {
+    penalty += 0.30; surcharge += 0.25;
+    tags.push({ label: `Strong wind ${wind}km/h`, cls: 'tag-bad' });
+  } else if (wind > 50) {
+    penalty += 0.15; surcharge += 0.12;
+    tags.push({ label: `Moderate wind ${wind}km/h`, cls: 'tag-warn' });
+  } else {
+    tags.push({ label: `Wind OK ${wind}km/h`, cls: 'tag-ok' });
+  }
+
+  // Rain / precipitation
+  if (rain > 10) {
+    penalty += 0.25; surcharge += 0.20;
+    tags.push({ label: `Heavy rain ${rain}mm`, cls: 'tag-bad' });
+  } else if (rain > 2) {
+    penalty += 0.10; surcharge += 0.08;
+    tags.push({ label: `Light rain ${rain}mm`, cls: 'tag-warn' });
+  } else {
+    tags.push({ label: 'No rain', cls: 'tag-ok' });
+  }
+
+  // Temperature extremes
+  if (temp < 0) {
+    penalty += 0.20; surcharge += 0.15;
+    tags.push({ label: `Freezing ${temp}°C`, cls: 'tag-bad' });
+  } else if (temp > 40) {
+    penalty += 0.10; surcharge += 0.10;
+    tags.push({ label: `Extreme heat ${temp}°C`, cls: 'tag-warn' });
+  } else {
+    tags.push({ label: `Temp OK ${temp}°C`, cls: 'tag-ok' });
+  }
+
+  // Storm / severe code
+  if (code >= 80) {
+    penalty += 0.20; surcharge += 0.20;
+    tags.push({ label: 'Severe weather', cls: 'tag-bad' });
+  }
+
+  // Fragile item extra surcharge in bad weather
+  let fragileExtra = 0;
+  if (fragility >= 7 && penalty > 0.2) {
+    fragileExtra = fragility * 0.03;
+    surcharge += fragileExtra;
+    tags.push({ label: `Fragile care surcharge`, cls: 'tag-warn' });
+  }
+
+  return { penalty: Math.min(penalty, 0.70), surcharge: Math.min(surcharge, 0.80), tags, fragileExtra };
+}
+
+async function calculate() {
+  hideError();
+  const btn = document.getElementById('calcBtn');
+  btn.classList.add('loading');
+  btn.textContent = 'Fetching weather data...';
+
+  try {
+    const originCity = document.getElementById('originCity').value.trim();
+    const destCity   = document.getElementById('destCity').value.trim();
+    const weight     = parseFloat(document.getElementById('weight').value) || 5;
+    const fragility  = parseInt(document.getElementById('fragility').value) || 4;
+    const distance   = parseFloat(document.getElementById('distance').value) || 250;
+    const basePrice  = parseFloat(document.getElementById('basePrice').value) || 5000;
+
+    if (!originCity || !destCity) throw new Error('Please enter both origin and destination cities.');
+
+    // Geocode origin
+    const originGeo = await geocode(originCity);
+    const weather   = await getWeather(originGeo.latitude, originGeo.longitude);
+    const c         = weather.current;
+    const { desc, icon } = weatherCodeInfo(c.weather_code);
+    const analysis  = analyzeConditions(weather, fragility);
+
+    // Base price formula
+    const distanceFactor = 1 + (distance / 1000);
+    const baseCalc = basePrice * distanceFactor + (fragility * 500);
+
+    // Weather surcharge
+    const weatherAdd = baseCalc * analysis.surcharge;
+    const finalPrice = baseCalc + weatherAdd;
+
+    // Speed
+    const baseSpeed = 90; // highway default
+    const fragilitySlow = baseSpeed * (1 - fragility / 15);
+    const weatherSlow   = fragilitySlow * (1 - analysis.penalty);
+    const speedPct      = (weatherSlow / baseSpeed) * 100;
+
+    // ETA
+    const etaHours = distance / weatherSlow;
+    const etaH = Math.floor(etaHours);
+    const etaM = Math.round((etaHours - etaH) * 60);
+
+    // Render weather
+    document.getElementById('wLocation').textContent = `${originGeo.name}, ${originGeo.country}`;
+    document.getElementById('wTemp').textContent     = `${c.temperature_2m}°C`;
+    document.getElementById('wDesc').textContent     = desc;
+    document.getElementById('wIcon').textContent     = icon;
+    document.getElementById('wWind').textContent     = c.wind_speed_10m;
+    document.getElementById('wHumid').textContent    = c.relative_humidity_2m;
+    document.getElementById('wRain').textContent     = c.precipitation;
+
+    // Condition tags
+    const tagsEl = document.getElementById('conditionTags');
+    tagsEl.innerHTML = analysis.tags.map(t =>
+      `<span class="condition-tag ${t.cls}">${t.label}</span>`
+    ).join('');
+
+    // Speed bar
+    document.getElementById('speedVal').textContent = `${weatherSlow.toFixed(1)} km/h`;
+    const bar = document.getElementById('speedBar');
+    bar.style.width = speedPct + '%';
+    bar.style.background = speedPct > 70 ? 'var(--success)' : speedPct > 45 ? 'var(--warn)' : 'var(--danger)';
+
+    // Price breakdown
+    const surchargePct = (analysis.surcharge * 100).toFixed(0);
+    const multClass = analysis.surcharge === 0 ? 'mult-ok' : analysis.surcharge < 0.2 ? 'mult-warn' : 'mult-bad';
+    const valClass  = analysis.surcharge === 0 ? '' : analysis.surcharge < 0.2 ? 'warn' : 'up';
+
+    document.getElementById('priceBreakdown').innerHTML = `
+      <div class="price-row">
+        <span>Base price</span>
+        <span class="price-val">${basePrice.toLocaleString()} XAF</span>
+      </div>
+      <div class="price-row">
+        <span>Distance factor (×${distanceFactor.toFixed(2)})</span>
+        <span class="price-val">${(basePrice * distanceFactor).toLocaleString('en', {maximumFractionDigits:0})} XAF</span>
+      </div>
+      <div class="price-row">
+        <span>Fragility surcharge (level ${fragility})</span>
+        <span class="price-val">${(fragility * 500).toLocaleString()} XAF</span>
+      </div>
+      <div class="price-row">
+        <span>Subtotal (no weather)</span>
+        <span class="price-val">${baseCalc.toLocaleString('en', {maximumFractionDigits:0})} XAF</span>
+      </div>
+      <div class="price-row">
+        <span>
+          Weather surcharge
+          <span class="multiplier-badge ${multClass}">+${surchargePct}%</span>
+        </span>
+        <span class="price-val ${valClass}">+${weatherAdd.toLocaleString('en', {maximumFractionDigits:0})} XAF</span>
+      </div>
+      <div class="price-row">
+        <span>Estimated ETA</span>
+        <span class="price-val">${etaH}h ${etaM}m (${weatherSlow.toFixed(1)} km/h)</span>
+      </div>
+      <div class="price-row total">
+        <span>Total Price</span>
+        <span>${finalPrice.toLocaleString('en', {maximumFractionDigits:0})} XAF</span>
+      </div>
+    `;
+
+    // Formula box
+    document.getElementById('formulaBox').textContent =
+`// Base formula (from project docs)
+base_calc     = ${basePrice} × ${distanceFactor.toFixed(2)} + (${fragility} × 500)
+              = ${baseCalc.toLocaleString('en', {maximumFractionDigits:0})} XAF
+
+// Weather penalty (conditions: wind=${c.wind_speed_10m}km/h, rain=${c.precipitation}mm, temp=${c.temperature_2m}°C)
+weather_penalty  = ${(analysis.penalty * 100).toFixed(0)}%
+weather_surcharge = ${(analysis.surcharge * 100).toFixed(0)}%
+
+// Final price
+final_price  = base_calc × (1 + weather_surcharge)
+             = ${baseCalc.toLocaleString('en', {maximumFractionDigits:0})} × ${(1 + analysis.surcharge).toFixed(2)}
+             = ${finalPrice.toLocaleString('en', {maximumFractionDigits:0})} XAF
+
+// Speed adjustment
+adjusted_speed = base_speed × (1 − fragility/15) × (1 − weather_penalty)
+               = ${baseSpeed} × (1 − ${fragility}/15) × (1 − ${analysis.penalty.toFixed(2)})
+               = ${weatherSlow.toFixed(1)} km/h
+
+// ETA
+eta = distance / adjusted_speed = ${distance} / ${weatherSlow.toFixed(1)} = ${etaH}h ${etaM}m`;
+
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('weatherDisplay').classList.add('visible');
+
+  } catch (err) {
+    showError(err.message || 'Something went wrong. Please try again.');
+  }
+
+  btn.classList.remove('loading');
+  btn.textContent = 'Calculate Weather Impact';
+}
+</script>
+</body>
+</html>
