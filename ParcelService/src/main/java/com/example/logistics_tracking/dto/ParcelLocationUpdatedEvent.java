@@ -1,0 +1,13 @@
+package com.example.logistics_tracking.dto;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record ParcelLocationUpdatedEvent(
+        UUID parcelId,
+        Double latitude,
+        Double longitude,
+        Integer progressPercentage,
+        Instant occurredAt
+) {
+}
