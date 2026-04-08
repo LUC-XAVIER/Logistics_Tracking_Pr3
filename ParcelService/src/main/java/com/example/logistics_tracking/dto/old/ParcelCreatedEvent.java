@@ -1,4 +1,4 @@
-package com.example.logistics_tracking.dto;
+package com.example.logistics_tracking.dto.old;
 
 import java.time.Instant;
 import java.util.UUID;

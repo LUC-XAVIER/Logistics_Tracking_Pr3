@@ -1,7 +1,7 @@
 package com.example.logistics_tracking.client;
 
-import com.example.logistics_tracking.dto.DeliveryBootstrapRequest;
-import com.example.logistics_tracking.dto.DeliverySummaryResponse;
+import com.example.logistics_tracking.dto.old.DeliveryBootstrapRequest;
+import com.example.logistics_tracking.dto.old.DeliverySummaryResponse;
 import java.util.UUID;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

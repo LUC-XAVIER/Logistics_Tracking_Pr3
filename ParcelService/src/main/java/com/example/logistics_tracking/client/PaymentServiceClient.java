@@ -1,8 +1,8 @@
 package com.example.logistics_tracking.client;
 
-import com.example.logistics_tracking.dto.PaymentQuoteRequest;
-import com.example.logistics_tracking.dto.PaymentQuoteResponse;
-import com.example.logistics_tracking.dto.PaymentResponse;
+import com.example.logistics_tracking.dto.old.PaymentQuoteRequest;
+import com.example.logistics_tracking.dto.old.PaymentQuoteResponse;
+import com.example.logistics_tracking.dto.old.PaymentResponse;
 import java.util.UUID;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

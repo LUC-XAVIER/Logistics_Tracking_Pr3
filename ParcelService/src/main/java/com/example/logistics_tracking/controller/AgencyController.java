@@ -1,7 +1,7 @@
 package com.example.logistics_tracking.controller;
 
-import com.example.logistics_tracking.dto.AgencyRequest;
-import com.example.logistics_tracking.dto.AgencyResponse;
+import com.example.logistics_tracking.dto.old.AgencyRequest;
+import com.example.logistics_tracking.dto.old.AgencyResponse;
 import com.example.logistics_tracking.entity.Agency;
 import com.example.logistics_tracking.repository.AgencyRepository;
 import jakarta.validation.Valid;

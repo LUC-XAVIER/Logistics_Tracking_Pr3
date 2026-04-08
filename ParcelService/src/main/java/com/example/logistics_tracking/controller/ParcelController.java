@@ -1,9 +1,9 @@
 package com.example.logistics_tracking.controller;
 
-import com.example.logistics_tracking.dto.CreateParcelRequest;
-import com.example.logistics_tracking.dto.ParcelResponse;
-import com.example.logistics_tracking.dto.ParcelSummaryResponse;
-import com.example.logistics_tracking.dto.UpdateParcelStatusRequest;
+import com.example.logistics_tracking.dto.old.CreateParcelRequest;
+import com.example.logistics_tracking.dto.old.ParcelResponse;
+import com.example.logistics_tracking.dto.old.ParcelSummaryResponse;
+import com.example.logistics_tracking.dto.old.UpdateParcelStatusRequest;
 import com.example.logistics_tracking.entity.Parcel;
 import com.example.logistics_tracking.repository.ParcelRepository;
 import jakarta.validation.Valid;

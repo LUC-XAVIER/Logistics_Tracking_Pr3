@@ -1,4 +1,4 @@
-package com.example.logistics_tracking.dto;
+package com.example.logistics_tracking.dto.old;
 
 import com.example.logistics_tracking.enums.ParcelStatus;
 import java.math.BigDecimal;

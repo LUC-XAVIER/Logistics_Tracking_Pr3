@@ -1,6 +1,6 @@
 package com.example.logistics_tracking.controller;
 
-import com.example.logistics_tracking.dto.RouteCacheResponse;
+import com.example.logistics_tracking.dto.old.RouteCacheResponse;
 import com.example.logistics_tracking.entity.RouteCache;
 import com.example.logistics_tracking.repository.RouteCacheRepository;
 import java.util.List;

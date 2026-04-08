@@ -1,7 +1,7 @@
 package com.example.logistics_tracking.client;
 
-import com.example.logistics_tracking.dto.NotificationResponse;
-import com.example.logistics_tracking.dto.ParcelEventNotificationRequest;
+import com.example.logistics_tracking.dto.old.NotificationResponse;
+import com.example.logistics_tracking.dto.old.ParcelEventNotificationRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

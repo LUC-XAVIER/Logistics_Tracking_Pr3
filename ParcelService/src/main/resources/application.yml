@@ -14,11 +14,30 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  kafka:
-    bootstrap-servers: localhost:9092
+    # Kafka configuration
+    kafka:
+      bootstrap-servers: localhost:9092  # Kafka broker address
+
+      # Producer settings (for publishing events)
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+        acks: all  # Wait for all replicas to acknowledge (reliability)
+        retries: 3  # Retry failed sends up to 3 times
+        properties:
+          enable.idempotence: true  # Prevent duplicate messages
+          linger.ms: 10  # Wait up to 10ms to batch messages (efficiency)
+
 server:
   port: 8082
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+# Logging configuration
+logging:
+  level:
+    com.logistics.parcel: DEBUG  # Debug level for our code
+    org.springframework.kafka: INFO  # Info level for Kafka
+    org.hibernate.SQL: DEBUG  # Show SQL queries
