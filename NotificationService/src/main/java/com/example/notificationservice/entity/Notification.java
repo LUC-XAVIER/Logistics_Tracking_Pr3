@@ -3,21 +3,10 @@ package com.example.notificationservice.entity;
 import com.example.notificationservice.enums.NotificationChannel;
 import com.example.notificationservice.enums.NotificationEventType;
 import com.example.notificationservice.enums.NotificationStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "notifications")
@@ -31,7 +20,11 @@ public class Notification {
     @Id
     private UUID id;
 
-    private UUID parcelId;
+    private UUID userId;       // added — owner of this notification
+
+    private UUID parcelId;     // nullable for payment-only notifications
+
+    private String title;      // added — shown in bell dropdown header
 
     @Enumerated(EnumType.STRING)
     private NotificationChannel channel;
@@ -49,19 +42,17 @@ public class Notification {
     @Lob
     private String message;
 
-    private Instant createdAt;
+    @Builder.Default
+    private boolean read = false;  // added — for bell icon unread state
 
+    private Instant createdAt;
     private Instant updatedAt;
 
     @PrePersist
     void onCreate() {
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
+        if (id == null) id = UUID.randomUUID();
         Instant now = Instant.now();
-        if (status == null) {
-            status = NotificationStatus.PENDING;
-        }
+        if (status == null) status = NotificationStatus.PENDING;
         createdAt = now;
         updatedAt = now;
     }

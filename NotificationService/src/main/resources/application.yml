@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/logistics_db
     username: root
-    password: password
+    password: weber
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -36,3 +36,5 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+firebase:
+  service-account-path: classpath:firebase-service-account-logistic-tracking.json

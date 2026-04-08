@@ -1,4 +1,4 @@
-package com.example.notificationservice.dto;
+package com.example.notificationservice.dto.old;
 
 import com.example.notificationservice.enums.NotificationChannel;
 import com.example.notificationservice.enums.NotificationEventType;

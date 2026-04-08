@@ -1,6 +1,6 @@
 package com.example.notificationservice.client;
 
-import com.example.notificationservice.dto.DeliverySummaryResponse;
+import com.example.notificationservice.dto.old.DeliverySummaryResponse;
 import java.util.UUID;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

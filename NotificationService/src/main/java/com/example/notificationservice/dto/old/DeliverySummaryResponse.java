@@ -1,4 +1,4 @@
-package com.example.notificationservice.dto;
+package com.example.notificationservice.dto.old;
 
 import java.time.Instant;
 import java.util.UUID;
