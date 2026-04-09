@@ -1,7 +1,5 @@
-package com.example.logistics_tracking.dto;
+package com.example.logistics_tracking.event;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.example.logistics_tracking.enums.ParcelStatus;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,31 +8,27 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ParcelResponse {
+public class ParcelCreatedEvent {
 
-    private String id;
+    private String eventId;
+    private String eventType;
+    private LocalDateTime timestamp;
+
+    private String parcelId;
     private String userId;
 
     private String sourceAgencyId;
-    private String sourceAgencyName;
     private String sourceManualAddress;
     private Double sourceLatitude;
     private Double sourceLongitude;
 
     private String destAgencyId;
-    private String destAgencyName;
     private String destManualAddress;
     private Double destLatitude;
     private Double destLongitude;
 
     private Double weight;
     private Integer fragility;
-    private ParcelStatus status;
     private BigDecimal estimatedCost;
-
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime estimatedDeliveryTime;
-
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime createdAt;
 }
