@@ -10,10 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/logistics/api/v1/parcels")
+@RequestMapping("/api/parcels")
 @RequiredArgsConstructor
 public class ParcelController {
 
@@ -42,17 +41,4 @@ public class ParcelController {
         List<ParcelResponse> parcels = parcelService.getParcelsByStatus(status);
         return ResponseEntity.ok(parcels);
     }
-
-    @GetMapping("/{parcelId}/owner")
-    public ResponseEntity<UUID> getParcelOwner(@PathVariable String parcelId) {
-        UUID ownerId = parcelService.getParcelOwner(parcelId);
-        return ResponseEntity.ok(ownerId);
-    }
-  @GetMapping("/available")
-  public ResponseEntity<List<ParcelResponse>> getAvailableParcels(
-    @RequestParam UUID sourceAgencyId,
-    @RequestParam UUID destAgencyId) {
-    List<ParcelResponse> parcels = parcelService.getAvailableParcels(sourceAgencyId, destAgencyId);
-    return ResponseEntity.ok(parcels);
-  }
 }

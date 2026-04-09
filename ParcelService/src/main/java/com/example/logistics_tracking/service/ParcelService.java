@@ -1,7 +1,7 @@
 package com.example.logistics_tracking.service;
 
 import com.example.logistics_tracking.event.ParcelCreatedEvent;
-import com.example.logistics_tracking.exception.BusinessException;
+import com.logistics.parcel.exception.BusinessException;
 import com.example.logistics_tracking.entity.Coordinates;
 import com.example.logistics_tracking.dto.ParcelRequest;
 import com.example.logistics_tracking.dto.ParcelResponse;
@@ -26,29 +26,36 @@ public class ParcelService {
 
     private final ParcelRepository parcelRepository;
     private final AgencyService agencyService;
+    private final GeocodingService geocodingService;
     private final KafkaEventPublisher kafkaEventPublisher;
 
     @Transactional
     public ParcelResponse createParcel(ParcelRequest request) {
-        Agency sourceAgency = agencyService.findById(request.getSourceAgencyId());
-        Agency destAgency = agencyService.findById(request.getDestAgencyId());
+        log.info("Creating parcel for user: {}", request.getUserId());
+
+        validateAddressInput(request);
 
         Parcel parcel = Parcel.builder()
                 .userId(request.getUserId())
-                .sourceAgency(sourceAgency)
-                .sourceLatitude(sourceAgency.getLatitude())
-                .sourceLongitude(sourceAgency.getLongitude())
-                .destAgency(destAgency)
-                .destLatitude(destAgency.getLatitude())
-                .destLongitude(destAgency.getLongitude())
                 .weight(request.getWeight())
                 .fragility(request.getFragility())
                 .status(ParcelStatus.PENDING_PAYMENT)
                 .build();
 
+        // Handle source location
+        handleSourceLocation(parcel, request);
+
+        // Handle destination location
+        handleDestinationLocation(parcel, request);
+
+        // Calculate cost and ETA
         calculateCostAndEta(parcel);
 
+        // Save parcel
         Parcel savedParcel = parcelRepository.save(parcel);
+        log.info("Parcel created: id={}", savedParcel.getId());
+
+        // Publish event to Kafka
         publishParcelCreatedEvent(savedParcel);
 
         return mapToResponse(savedParcel);
@@ -73,6 +80,66 @@ public class ParcelService {
         return parcelRepository.findByStatus(status).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    private void validateAddressInput(ParcelRequest request) {
+        // Source validation
+        boolean hasSourceAgency = request.hasSourceAgency();
+        boolean hasSourceManual = request.hasSourceManualAddress();
+
+        if (hasSourceAgency && hasSourceManual) {
+            throw BusinessException.invalidAddressInput();
+        }
+        if (!hasSourceAgency && !hasSourceManual) {
+            throw BusinessException.missingAddressInput();
+        }
+
+        // Destination validation
+        boolean hasDestAgency = request.hasDestAgency();
+        boolean hasDestManual = request.hasDestManualAddress();
+
+        if (hasDestAgency && hasDestManual) {
+            throw BusinessException.invalidAddressInput();
+        }
+        if (!hasDestAgency && !hasDestManual) {
+            throw BusinessException.missingAddressInput();
+        }
+    }
+
+    private void handleSourceLocation(Parcel parcel, ParcelRequest request) {
+        if (request.hasSourceAgency()) {
+            Agency agency = agencyService.findById(request.getSourceAgencyId());
+            parcel.setSourceAgency(agency);
+            parcel.setSourceLatitude(agency.getLatitude());
+            parcel.setSourceLongitude(agency.getLongitude());
+            log.debug("Using source agency: {}", agency.getName());
+        } else {
+            parcel.setSourceManualAddress(request.getSourceManualAddress());
+            Coordinates coords = geocodingService.getCoordinatesFromAddress(
+                    request.getSourceManualAddress()
+            );
+            parcel.setSourceLatitude(coords.getLatitude());
+            parcel.setSourceLongitude(coords.getLongitude());
+            log.debug("Geocoded source address: {}", request.getSourceManualAddress());
+        }
+    }
+
+    private void handleDestinationLocation(Parcel parcel, ParcelRequest request) {
+        if (request.hasDestAgency()) {
+            Agency agency = agencyService.findById(request.getDestAgencyId());
+            parcel.setDestAgency(agency);
+            parcel.setDestLatitude(agency.getLatitude());
+            parcel.setDestLongitude(agency.getLongitude());
+            log.debug("Using dest agency: {}", agency.getName());
+        } else {
+            parcel.setDestManualAddress(request.getDestManualAddress());
+            Coordinates coords = geocodingService.getCoordinatesFromAddress(
+                    request.getDestManualAddress()
+            );
+            parcel.setDestLatitude(coords.getLatitude());
+            parcel.setDestLongitude(coords.getLongitude());
+            log.debug("Geocoded dest address: {}", request.getDestManualAddress());
+        }
     }
 
     private void calculateCostAndEta(Parcel parcel) {
@@ -130,10 +197,12 @@ public class ParcelService {
                     .userId(parcel.getUserId())
                     .sourceAgencyId(parcel.getSourceAgency() != null ?
                             parcel.getSourceAgency().getId().toString() : null)
+                    .sourceManualAddress(parcel.getSourceManualAddress())
                     .sourceLatitude(parcel.getSourceLatitude())
                     .sourceLongitude(parcel.getSourceLongitude())
                     .destAgencyId(parcel.getDestAgency() != null ?
                             parcel.getDestAgency().getId().toString() : null)
+                    .destManualAddress(parcel.getDestManualAddress())
                     .destLatitude(parcel.getDestLatitude())
                     .destLongitude(parcel.getDestLongitude())
                     .weight(parcel.getWeight())
@@ -157,12 +226,14 @@ public class ParcelService {
                         parcel.getSourceAgency().getId().toString() : null)
                 .sourceAgencyName(parcel.getSourceAgency() != null ?
                         parcel.getSourceAgency().getName() : null)
+                .sourceManualAddress(parcel.getSourceManualAddress())
                 .sourceLatitude(parcel.getSourceLatitude())
                 .sourceLongitude(parcel.getSourceLongitude())
                 .destAgencyId(parcel.getDestAgency() != null ?
                         parcel.getDestAgency().getId().toString() : null)
                 .destAgencyName(parcel.getDestAgency() != null ?
                         parcel.getDestAgency().getName() : null)
+                .destManualAddress(parcel.getDestManualAddress())
                 .destLatitude(parcel.getDestLatitude())
                 .destLongitude(parcel.getDestLongitude())
                 .weight(parcel.getWeight())
@@ -173,35 +244,4 @@ public class ParcelService {
                 .createdAt(parcel.getCreatedAt())
                 .build();
     }
-    @Transactional(readOnly = true)
-    public UUID getParcelOwner(String parcelId) {
-        Parcel parcel = parcelRepository.findById(parcelId)
-                .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
-        return parcel.getUserId();
-    }
-  public List<ParcelResponse> getAvailableParcels(UUID sourceAgencyId, UUID destAgencyId) {
-    List<Parcel> parcels = parcelRepository.findBySourceAgencyIdAndDestAgencyIdAndStatus(
-      sourceAgencyId,
-      destAgencyId,
-      ParcelStatus.WAITING_FOR_DRIVER
-    );
-
-    return parcels.stream()
-      .map(this::mapToResponse)
-      .collect(Collectors.toList());
-  }
-
-  @Transactional
-  public void updateParcelStatusToWaitingForDriver(String parcelId) {
-      Parcel parcel = parcelRepository.findById(parcelId)
-              .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
-      
-      if (parcel.getStatus() == ParcelStatus.PENDING_PAYMENT) {
-          parcel.setStatus(ParcelStatus.WAITING_FOR_DRIVER);
-          parcelRepository.save(parcel);
-          log.info("Parcel {} status updated to WAITING_FOR_DRIVER", parcelId);
-      } else {
-          log.warn("Parcel {} is not in PENDING_PAYMENT status. Current status: {}", parcelId, parcel.getStatus());
-      }
-  }
 }

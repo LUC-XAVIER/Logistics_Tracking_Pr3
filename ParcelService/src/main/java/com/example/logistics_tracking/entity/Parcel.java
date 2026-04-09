@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "parcels")
@@ -21,12 +20,14 @@ public class Parcel {
     private String id;
 
     @Column(nullable = false)
-    private UUID userId;
+    private String userId;
 
     // Source: Either agency OR manual address
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_agency_id")
     private Agency sourceAgency;
+
+    private String sourceManualAddress;
 
     @Column(nullable = false)
     private Double sourceLatitude;
@@ -38,6 +39,8 @@ public class Parcel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dest_agency_id")
     private Agency destAgency;
+
+    private String destManualAddress;
 
     @Column(nullable = false)
     private Double destLatitude;

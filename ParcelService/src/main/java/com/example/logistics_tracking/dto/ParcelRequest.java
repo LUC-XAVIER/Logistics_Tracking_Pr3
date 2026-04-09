@@ -3,8 +3,6 @@ package com.example.logistics_tracking.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -12,13 +10,15 @@ import java.util.UUID;
 public class ParcelRequest {
 
     @NotBlank(message = "User ID is required")
-    private UUID userId;
+    private String userId;
 
-    @NotBlank(message = "Source agency ID is required")
+    // Source: agency XOR manual address
     private String sourceAgencyId;
+    private String sourceManualAddress;
 
-    @NotBlank(message = "Destination agency ID is required")
+    // Destination: agency XOR manual address
     private String destAgencyId;
+    private String destManualAddress;
 
     @NotNull(message = "Weight is required")
     @DecimalMin(value = "0.1", message = "Weight must be at least 0.1 kg")
@@ -29,4 +29,20 @@ public class ParcelRequest {
     @Min(value = 1, message = "Fragility must be at least 1")
     @Max(value = 10, message = "Fragility cannot exceed 10")
     private Integer fragility;
+
+    public boolean hasSourceAgency() {
+        return sourceAgencyId != null && !sourceAgencyId.isBlank();
+    }
+
+    public boolean hasSourceManualAddress() {
+        return sourceManualAddress != null && !sourceManualAddress.isBlank();
+    }
+
+    public boolean hasDestAgency() {
+        return destAgencyId != null && !destAgencyId.isBlank();
+    }
+
+    public boolean hasDestManualAddress() {
+        return destManualAddress != null && !destManualAddress.isBlank();
+    }
 }

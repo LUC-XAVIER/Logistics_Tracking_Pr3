@@ -1,13 +1,8 @@
 package com.example.logistics_tracking.event;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -20,7 +15,7 @@ public class ParcelCreatedEvent {
     private LocalDateTime timestamp;
 
     private String parcelId;
-    private UUID userId;
+    private String userId;
 
     private String sourceAgencyId;
     private String sourceManualAddress;
