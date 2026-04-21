@@ -60,7 +60,6 @@ public class TripService {
                 .destLongitude(destCoords.getLongitude())
                 .totalDistanceKm(route.totalDistanceKm())
                 .segmentCount(route.segmentCount())
-                .fullPath(route.fullPath())
                 .status(TripStatus.COLLECTING)
                 .build();
 
@@ -164,24 +163,28 @@ public class TripService {
     }
 
 
-  @Transactional(readOnly = true)
-  public List<AvailableParcelResponse> getAvailableParcels(UUID tripId) {
-    DriverTrip trip = findTripById(tripId);
+    @Transactional(readOnly = true)
+    public List<AvailableParcelResponse> getAvailableParcels(UUID tripId) {
+        DriverTrip trip = findTripById(tripId);
 
-    if (!trip.getStatus().canAcceptParcels()) {
-      throw BusinessException.tripNotInCorrectStatus("COLLECTING");
-    }
+        if (!trip.getStatus().canAcceptParcels()) {
+            throw BusinessException.tripNotInCorrectStatus("COLLECTING");
+        }
 
-    try {
-      return parcelServiceClient.getAvailableParcels(
-        trip.getSourceAgencyId(),
-        trip.getDestAgencyId()
-      );
-    } catch (Exception e) {
-      log.error("Failed to fetch available parcels: {}", e.getMessage());
-      return Collections.emptyList();
+        String url = parcelServiceClient.getParcelServiceUrl()
+                + "/api/parcels/available"
+                + "?sourceAgencyId=" + trip.getSourceAgencyId()
+                + "&destAgencyId=" + trip.getDestAgencyId();
+
+        try {
+            AvailableParcelResponse[] parcels =
+                    new RestTemplate().getForObject(url, AvailableParcelResponse[].class);
+            return parcels != null ? Arrays.asList(parcels) : Collections.emptyList();
+        } catch (Exception e) {
+            log.error("Failed to fetch available parcels: {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
-  }
 
     private void completeTrip(DriverTrip trip, List<String> parcelIds) {
         trip.setStatus(TripStatus.COMPLETED);
@@ -306,7 +309,6 @@ public class TripService {
                 .status(trip.getStatus())
                 .segments(segmentResponses)
                 .parcelsCount(parcelsCount)
-                .fullPath(trip.getFullPath())
                 .startedAt(trip.getStartedAt())
                 .createdAt(trip.getCreatedAt())
                 .build();

@@ -1,45 +1,39 @@
 package com.example.deliveryservice.client;
 
 import com.example.deliveryservice.dto.AgencyCoordinatesResponse;
-import com.example.deliveryservice.dto.AvailableParcelResponse;
 import com.example.deliveryservice.exception.BusinessException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
-@FeignClient(name = "ParcelService", path = "/logistics/api/v1")
-public interface ParcelServiceClient {
+@Service
+@Slf4j
+public class ParcelServiceClient {
 
-  @GetMapping("/agencies/{agencyId}/coordinates")
-  AgencyCoordinatesResponse getAgencyCoordinates(@PathVariable("agencyId") UUID agencyId);
+    private final RestTemplate restTemplate = new RestTemplate();
 
-  @GetMapping("/parcels/available")
-  List<AvailableParcelResponse> getAvailableParcels(
-    @RequestParam("sourceAgencyId") UUID sourceAgencyId,
-    @RequestParam("destAgencyId") UUID destAgencyId
-  );
+    @Getter
+    @Value("${services.parcel-service.url}")
+    private String parcelServiceUrl;
 
-  @Component
-  @Slf4j
-  class ParcelServiceClientFallback implements ParcelServiceClient {
-
-    @Override
     public AgencyCoordinatesResponse getAgencyCoordinates(UUID agencyId) {
-      log.error("Failed to fetch coordinates for agency {}", agencyId);
-      throw BusinessException.agencyNotFound(agencyId);
+        String url = parcelServiceUrl + "/api/agencies/" + agencyId + "/coordinates";
+        try {
+            AgencyCoordinatesResponse response =
+                    restTemplate.getForObject(url, AgencyCoordinatesResponse.class);
+            if (response == null) {
+                throw BusinessException.agencyNotFound(agencyId);
+            }
+            return response;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to fetch coordinates for agency {}: {}", agencyId, e.getMessage());
+            throw BusinessException.agencyNotFound(agencyId);
+        }
     }
-
-    @Override
-    public List<AvailableParcelResponse> getAvailableParcels(UUID sourceAgencyId, UUID destAgencyId) {
-      log.error("Failed to fetch available parcels for route {} -> {}", sourceAgencyId, destAgencyId);
-      return Collections.emptyList();
-    }
-  }
 }

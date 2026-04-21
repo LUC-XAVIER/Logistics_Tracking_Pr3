@@ -3,8 +3,6 @@ package com.example.deliveryservice.entity;
 import com.example.deliveryservice.enums.TripStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes; 
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -53,11 +51,6 @@ public class DriverTrip {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TripStatus status;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "json")
-    @Builder.Default
-    private List<double[]> fullPath = new ArrayList<>();
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
