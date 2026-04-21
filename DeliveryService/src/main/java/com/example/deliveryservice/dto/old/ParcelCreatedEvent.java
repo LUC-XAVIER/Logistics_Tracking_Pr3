@@ -1,4 +1,4 @@
-package com.example.deliveryservice.dto;
+package com.example.deliveryservice.dto.old;
 
 import java.time.Instant;
 import java.util.UUID;

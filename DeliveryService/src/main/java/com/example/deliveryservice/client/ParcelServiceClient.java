@@ -1,21 +1,39 @@
 package com.example.deliveryservice.client;
 
-import com.example.deliveryservice.dto.ParcelStatusUpdateRequest;
-import com.example.deliveryservice.dto.ParcelSummaryResponse;
+import com.example.deliveryservice.dto.AgencyCoordinatesResponse;
+import com.example.deliveryservice.exception.BusinessException;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import java.util.UUID;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "ParcelService", path = "/api/v1/parcels")
-public interface ParcelServiceClient {
+@Service
+@Slf4j
+public class ParcelServiceClient {
 
-    @GetMapping("/{parcelId}/summary")
-    ParcelSummaryResponse getParcelSummary(@PathVariable("parcelId") UUID parcelId);
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @PatchMapping("/{parcelId}/status")
-    void updateParcelStatus(@PathVariable("parcelId") UUID parcelId,
-                            @RequestBody ParcelStatusUpdateRequest request);
+    @Getter
+    @Value("${services.parcel-service.url}")
+    private String parcelServiceUrl;
+
+    public AgencyCoordinatesResponse getAgencyCoordinates(UUID agencyId) {
+        String url = parcelServiceUrl + "/api/agencies/" + agencyId + "/coordinates";
+        try {
+            AgencyCoordinatesResponse response =
+                    restTemplate.getForObject(url, AgencyCoordinatesResponse.class);
+            if (response == null) {
+                throw BusinessException.agencyNotFound(agencyId);
+            }
+            return response;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to fetch coordinates for agency {}: {}", agencyId, e.getMessage());
+            throw BusinessException.agencyNotFound(agencyId);
+        }
+    }
 }
