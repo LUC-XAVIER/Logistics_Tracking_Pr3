@@ -27,8 +27,6 @@ public class Parcel {
     @JoinColumn(name = "source_agency_id")
     private Agency sourceAgency;
 
-    private String sourceManualAddress;
-
     @Column(nullable = false)
     private Double sourceLatitude;
 
@@ -39,8 +37,6 @@ public class Parcel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dest_agency_id")
     private Agency destAgency;
-
-    private String destManualAddress;
 
     @Column(nullable = false)
     private Double destLatitude;
