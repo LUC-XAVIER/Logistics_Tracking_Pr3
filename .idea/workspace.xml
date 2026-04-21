@@ -4,8 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="Feat(delivery service): implemented the delivery service">
+    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events">
+      <change afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/config/KafkaProducerConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/event/ParcelCreatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/event/ParcelCreatedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/repository/AgencyRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/repository/AgencyRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/repository/ParcelRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/repository/ParcelRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -189,7 +197,7 @@
       <workItem from="1775383111853" duration="68000" />
       <workItem from="1775457541587" duration="41377000" />
       <workItem from="1776508010141" duration="1517000" />
-      <workItem from="1776756285640" duration="23482000" />
+      <workItem from="1776756285640" duration="5520000" />
     </task>
     <task id="LOCAL-00001" summary="Feat: implemented push notifications and notification functionality and started configuring kafka">
       <option name="closed" value="true" />
@@ -223,31 +231,7 @@
       <option name="project" value="LOCAL" />
       <updated>1775746688223</updated>
     </task>
-    <task id="LOCAL-00005" summary="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events">
-      <option name="closed" value="true" />
-      <created>1776772810117</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1776772810117</updated>
-    </task>
-    <task id="LOCAL-00006" summary="Feat(parcel service): updated parcel service with new changes matching the delivery service">
-      <option name="closed" value="true" />
-      <created>1776789225154</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1776789225154</updated>
-    </task>
-    <task id="LOCAL-00007" summary="Feat(delivery service): implemented the delivery service">
-      <option name="closed" value="true" />
-      <created>1776815342182</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1776815342182</updated>
-    </task>
-    <option name="localTasksCounter" value="8" />
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -271,8 +255,6 @@
     <MESSAGE value="Feat: implemented push notifications and notification functionality and started configuring kafka" />
     <MESSAGE value="Feat(Kafka): started implementing kafka configurations" />
     <MESSAGE value="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events" />
-    <MESSAGE value="Feat(parcel service): updated parcel service with new changes matching the delivery service" />
-    <MESSAGE value="Feat(delivery service): implemented the delivery service" />
-    <option name="LAST_COMMIT_MESSAGE" value="Feat(delivery service): implemented the delivery service" />
+    <option name="LAST_COMMIT_MESSAGE" value="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events" />
   </component>
 </project>

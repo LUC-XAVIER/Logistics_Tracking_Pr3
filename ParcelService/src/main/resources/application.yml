@@ -15,8 +15,8 @@ spring:
       hibernate:
         format_sql: true
     # Kafka configuration
-  kafka:
-    bootstrap-servers: localhost:9092  # Kafka broker address
+    kafka:
+      bootstrap-servers: localhost:9092  # Kafka broker address
 
 server:
   port: 8082
