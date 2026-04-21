@@ -9,16 +9,23 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-  kafka:
-    bootstrap-servers: localhost:9092
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+    kafka:
+      bootstrap-servers: localhost:9092
 server:
   port: 8083
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    com.example.delivery_service: DEBUG
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: DEBUG
