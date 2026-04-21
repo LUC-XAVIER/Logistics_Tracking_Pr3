@@ -27,7 +27,7 @@ spring:
             - id: parcel-service-agencies
               uri: lb://ParcelService
               predicates:
-                - Path=/api/v1/agencies/**
+                - Path=/api/v1/agencies/**,/api/v1/routes/**, /api/parcels/**
             - id: parcel-service-routes
               uri: lb://ParcelService
               predicates:
@@ -35,7 +35,7 @@ spring:
             - id: delivery-service
               uri: lb://DeliveryService
               predicates:
-                - Path=/api/v1/deliveries/**
+                - Path=/api/v1/deliveries/**,/api/trips/**
             - id: payment-service
               uri: lb://PaymentService
               predicates:

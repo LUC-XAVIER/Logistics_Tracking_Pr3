@@ -64,4 +64,10 @@ public class AgencyService {
                 .longitude(agency.getLongitude())
                 .build();
     }
+    @Transactional(readOnly = true)
+    public CoordinatesResponse getAgencyCoordinates(UUID agencyId) {
+        Agency agency = agencyRepository.findById(agencyId)
+                .orElseThrow(() -> BusinessException.agencyNotFound(agencyId.toString()));
+        return new CoordinatesResponse(agency.getLatitude(), agency.getLongitude());
+    }
 }

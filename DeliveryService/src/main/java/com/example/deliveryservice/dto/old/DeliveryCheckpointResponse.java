@@ -1,4 +1,4 @@
-package com.example.deliveryservice.dto;
+package com.example.deliveryservice.dto.old;
 
 import com.example.deliveryservice.enums.RoadType;
 import java.time.Instant;
