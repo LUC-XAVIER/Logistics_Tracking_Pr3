@@ -1,8 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SidebarComponent } from '../../../shared/sidebar/sidebar';
+import * as L from 'leaflet';
+
+// Fix Leaflet default icon issue
+const iconRetinaUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png';
+const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
+const shadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
+const iconDefault = L.icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = iconDefault;
 
 interface CachedRoute {
   id: string;
@@ -48,8 +65,12 @@ interface StatCard {
   styleUrls: ['./routes-cache.css'],
   imports: [CommonModule, FormsModule, SidebarComponent]
 })
-export class AdminRoutesCacheComponent implements OnInit {
+export class AdminRoutesCacheComponent implements OnInit, AfterViewInit {
   Math = Math;
+  private map: any;
+  private currentRouteLayer: any;
+  private markers: any[] = [];
+  private mapInitialized: boolean = false;
 
   // Sample cached routes data
   cachedRoutes: CachedRoute[] = [
@@ -181,7 +202,6 @@ export class AdminRoutesCacheComponent implements OnInit {
   sortOrder: 'asc' | 'desc' = 'desc';
   activeView: string = 'list';
 
-  // Form for adding new route
   newRoute: any = {
     origin: '',
     destination: '',
@@ -189,14 +209,10 @@ export class AdminRoutesCacheComponent implements OnInit {
     duration: 0
   };
 
-  // Unique origins and destinations for filters
   origins: string[] = [];
   destinations: string[] = [];
-
-  // Stats
   statsCards: StatCard[] = [];
 
-  // Cache info
   cacheInfo = {
     totalSize: 0,
     totalDistance: 0,
@@ -213,6 +229,136 @@ export class AdminRoutesCacheComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    // Don't initialize map here - wait for tab click
+  }
+
+  private initMap(): void {
+    if (this.mapInitialized) return;
+    
+    const mapElement = document.getElementById('routeMap');
+    if (!mapElement) return;
+
+    this.map = L.map('routeMap').setView([51.1657, 10.4515], 6);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      minZoom: 3
+    }).addTo(this.map);
+
+    this.mapInitialized = true;
+    this.updateMapForAllRoutes();
+  }
+
+  private updateMapForRoute(route: CachedRoute): void {
+    if (!this.map) return;
+
+    // Clear existing layers
+    if (this.currentRouteLayer) {
+      this.map.removeLayer(this.currentRouteLayer);
+    }
+    this.markers.forEach(marker => this.map.removeLayer(marker));
+    this.markers = [];
+
+    // Add origin marker
+    const originIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div style="background-color: #10B981; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`,
+      iconSize: [12, 12],
+      popupAnchor: [0, -6]
+    });
+
+    const originMarker = L.marker([route.originCoordinates.lat, route.originCoordinates.lng], { icon: originIcon })
+      .bindPopup(`<strong>📍 Origin</strong><br/>${route.origin}`)
+      .addTo(this.map);
+    this.markers.push(originMarker);
+
+    // Add destination marker
+    const destIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div style="background-color: #EF4444; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`,
+      iconSize: [12, 12],
+      popupAnchor: [0, -6]
+    });
+
+    const destMarker = L.marker([route.destinationCoordinates.lat, route.destinationCoordinates.lng], { icon: destIcon })
+      .bindPopup(`<strong>📍 Destination</strong><br/>${route.destination}`)
+      .addTo(this.map);
+    this.markers.push(destMarker);
+
+    // Draw route line
+    const routePoints: [number, number][] = [
+      [route.originCoordinates.lat, route.originCoordinates.lng],
+      [route.destinationCoordinates.lat, route.destinationCoordinates.lng]
+    ];
+
+    this.currentRouteLayer = L.polyline(routePoints, {
+      color: '#3B82F6',
+      weight: 4,
+      opacity: 0.8,
+      dashArray: '10, 10'
+    }).addTo(this.map);
+
+    // Fit bounds to show both points
+    const bounds = L.latLngBounds(routePoints);
+    this.map.fitBounds(bounds, { padding: [50, 50] });
+  }
+
+  private updateMapForAllRoutes(): void {
+    if (!this.map) return;
+
+    this.markers.forEach(marker => this.map.removeLayer(marker));
+    this.markers = [];
+
+    const allPoints: [number, number][] = [];
+
+    this.filteredRoutes.forEach(route => {
+      const markerColor = '#3B82F6';
+      const customIcon = L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background-color: ${markerColor}; width: 10px; height: 10px; border-radius: 50%; border: 1px solid white; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>`,
+        iconSize: [10, 10],
+        popupAnchor: [0, -5]
+      });
+
+      const marker = L.marker([route.originCoordinates.lat, route.originCoordinates.lng], { icon: customIcon })
+        .bindPopup(`<strong>${route.origin}</strong><br/>→ ${route.destination}<br/>📏 ${route.distance} km`)
+        .addTo(this.map);
+      this.markers.push(marker);
+
+      allPoints.push([route.originCoordinates.lat, route.originCoordinates.lng]);
+      allPoints.push([route.destinationCoordinates.lat, route.destinationCoordinates.lng]);
+    });
+
+    if (allPoints.length > 0) {
+      const bounds = L.latLngBounds(allPoints);
+      this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }
+
+  // Map controls
+  zoomIn(): void {
+    if (this.map) this.map.zoomIn();
+  }
+
+  zoomOut(): void {
+    if (this.map) this.map.zoomOut();
+  }
+
+  centerMap(): void {
+    if (this.map && this.filteredRoutes.length > 0) {
+      const allPoints: [number, number][] = [];
+      this.filteredRoutes.forEach(route => {
+        allPoints.push([route.originCoordinates.lat, route.originCoordinates.lng]);
+        allPoints.push([route.destinationCoordinates.lat, route.destinationCoordinates.lng]);
+      });
+      const bounds = L.latLngBounds(allPoints);
+      this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }
 
   calculateStats(): void {
     const totalDistance = this.cachedRoutes.reduce((sum, r) => sum + r.distance, 0);
@@ -348,6 +494,10 @@ export class AdminRoutesCacheComponent implements OnInit {
     });
 
     this.sortRoutes();
+    
+    if (this.activeView === 'map' && this.map) {
+      this.updateMapForAllRoutes();
+    }
   }
 
   sortRoutes(): void {
@@ -427,16 +577,32 @@ export class AdminRoutesCacheComponent implements OnInit {
 
   setActiveView(view: string): void {
     this.activeView = view;
+    if (view === 'map') {
+      setTimeout(() => {
+        if (!this.mapInitialized) {
+          this.initMap();
+        } else if (this.map) {
+          this.map.invalidateSize();
+          this.updateMapForAllRoutes();
+        }
+      }, 100);
+    }
   }
 
   viewRouteDetails(route: CachedRoute): void {
     this.selectedRoute = route;
     this.showDetailsModal = true;
+    if (this.map && this.activeView === 'map') {
+      this.updateMapForRoute(route);
+    }
   }
 
   closeDetailsModal(): void {
     this.showDetailsModal = false;
     this.selectedRoute = null;
+    if (this.map && this.activeView === 'map') {
+      this.updateMapForAllRoutes();
+    }
   }
 
   openAddModal(): void {
@@ -493,6 +659,9 @@ export class AdminRoutesCacheComponent implements OnInit {
     this.calculateStats();
     this.extractUniqueLocations();
     this.closeClearCacheModal();
+    if (this.map && this.activeView === 'map') {
+      this.updateMapForAllRoutes();
+    }
   }
 
   deleteRoute(id: string): void {
@@ -504,6 +673,9 @@ export class AdminRoutesCacheComponent implements OnInit {
       
       if (this.selectedRoute?.id === id) {
         this.closeDetailsModal();
+      }
+      if (this.map && this.activeView === 'map') {
+        this.updateMapForAllRoutes();
       }
     }
   }
