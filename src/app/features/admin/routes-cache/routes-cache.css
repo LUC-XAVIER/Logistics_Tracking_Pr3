@@ -506,18 +506,26 @@
 }
 
 /* Map View */
-.map-view {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid #E5E7EB;
-}
-
-.map-placeholder {
+ .map-placeholder {
   position: relative;
   width: 100%;
   height: 500px;
   background: #e8ead0;
+}
+
+/* Route Map Styles */
+.route-map {
+  width: 100%;
+  height: 500px;
+  background: #e8ead0;
+}
+
+.map-view {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
 }
 
 .map-controls {
@@ -528,18 +536,42 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  z-index: 1000;
 }
 
 .map-control {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
+  border: none;
+  background: white;
   color: #374151;
   border-bottom: 1px solid #e5e7eb;
+  transition: background 0.2s;
+}
+
+.map-control:hover {
+  background: #F3F4F6;
+}
+
+.map-control:last-child {
+  border-bottom: none;
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  min-width: 200px;
+}
+
+.leaflet-popup-content strong {
+  color: #111827;
+  font-weight: 700;
 }
 
 /* Modal Styles */

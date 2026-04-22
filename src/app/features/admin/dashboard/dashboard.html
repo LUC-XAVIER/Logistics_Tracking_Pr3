@@ -121,91 +121,31 @@
         </button>
       </div>
 
-      <!-- Map -->
-      <div class="map-container">
-        <svg width="100%" height="100%" viewBox="0 0 600 220" preserveAspectRatio="xMidYMid slice">
-          <!-- Background -->
-          <rect width="600" height="220" fill="#e8ead0" />
-          
-          <!-- Parks -->
-          <rect x="0" y="0" width="120" height="80" fill="#c8dba0" rx="4" />
-          <rect x="380" y="30" width="100" height="60" fill="#c8dba0" rx="4" />
-          <rect x="200" y="140" width="80" height="50" fill="#c8dba0" rx="4" />
-          <rect x="480" y="120" width="120" height="100" fill="#c8dba0" rx="4" />
-          
-          <!-- Water -->
-          <path d="M420 0 Q460 20 440 60 Q420 100 460 130 Q500 160 480 200 L600 200 L600 0 Z" fill="#b8d4e8" opacity="0.7" />
-          
-          <!-- City blocks -->
-          <rect x="130" y="10" width="50" height="35" fill="#d4cfc0" rx="2" />
-          <rect x="190" y="10" width="60" height="35" fill="#d4cfc0" rx="2" />
-          <rect x="260" y="10" width="45" height="35" fill="#d4cfc0" rx="2" />
-          <rect x="310" y="10" width="55" height="35" fill="#d4cfc0" rx="2" />
-          <rect x="130" y="90" width="60" height="40" fill="#d4cfc0" rx="2" />
-          <rect x="200" y="90" width="40" height="40" fill="#d4cfc0" rx="2" />
-          <rect x="250" y="90" width="55" height="40" fill="#d4cfc0" rx="2" />
-          <rect x="310" y="90" width="50" height="40" fill="#d4cfc0" rx="2" />
-          <rect x="130" y="155" width="55" height="40" fill="#d4cfc0" rx="2" />
-          <rect x="300" y="155" width="60" height="40" fill="#d4cfc0" rx="2" />
-          
-          <!-- Roads -->
-          <line x1="0" y1="55" x2="600" y2="55" stroke="#fff" stroke-width="6" />
-          <line x1="0" y1="140" x2="420" y2="140" stroke="#fff" stroke-width="6" />
-          <line x1="170" y1="0" x2="170" y2="220" stroke="#fff" stroke-width="5" />
-          <line x1="310" y1="0" x2="310" y2="220" stroke="#fff" stroke-width="5" />
-          <line x1="0" y1="200" x2="480" y2="200" stroke="#fff" stroke-width="4" />
-          <line x1="120" y1="0" x2="120" y2="220" stroke="#fff" stroke-width="4" />
-          <line x1="420" y1="0" x2="420" y2="220" stroke="#fff" stroke-width="4" />
-
-          <!-- Route dashed line -->
-          <path d="M 150 185 Q 155 160 170 145 Q 190 125 210 130 Q 240 135 260 125 Q 285 110 300 95 Q 315 75 330 60 Q 355 40 375 45" fill="none" stroke="#1D4ED8" stroke-width="3" stroke-dasharray="8 5" />
-          
-          <!-- Origin pin -->
-          <circle cx="150" cy="185" r="8" fill="#1D4ED8" />
-          <circle cx="150" cy="185" r="4" fill="white" />
-          
-          <!-- Destination pin -->
-          <circle cx="375" cy="45" r="8" fill="#1D4ED8" />
-          <circle cx="375" cy="45" r="4" fill="white" />
-
-          <!-- Origin tooltip -->
-          <rect x="60" y="148" width="130" height="42" rx="8" fill="white" filter="url(#shadow)" />
-          <text x="76" y="163" font-size="9" fill="#6B7280" font-family="sans-serif">Mohrenstrasse 37</text>
-          <text x="76" y="179" font-size="10" font-weight="bold" fill="#111827" font-family="sans-serif">10117 Berlin</text>
-
-          <!-- Destination tooltip -->
-          <rect x="385" y="30" width="130" height="42" rx="8" fill="white" filter="url(#shadow)" />
-          <text x="401" y="45" font-size="9" fill="#6B7280" font-family="sans-serif">Goethestraße 1</text>
-          <text x="401" y="61" font-size="10" font-weight="bold" fill="#111827" font-family="sans-serif">10115 Berlin</text>
-
-          <defs>
-            <filter id="shadow" x="-10%" y="-20%" width="120%" height="160%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022" />
-            </filter>
-          </defs>
-        </svg>
-
-        <!-- Map controls -->
-        <div class="map-controls">
-          <div class="map-control">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </div>
-          <div class="map-control">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </div>
-          <div class="map-control">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3" />
-              <circle cx="12" cy="12" r="8" />
-            </svg>
-          </div>
-        </div>
-      </div>
+      <!-- Map --> 
+<div class="map-container">
+  <div id="map"></div>
+  
+  <!-- Map controls -->
+  <div class="map-controls">
+    <button class="map-control" (click)="zoomIn()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    </button>
+    <button class="map-control" (click)="zoomOut()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    </button>
+    <button class="map-control" (click)="centerMap()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3" />
+        <circle cx="12" cy="12" r="8" />
+      </svg>
+    </button>
+  </div>
+</div>
 
       <!-- Stats bar -->
       <div class="stats-bar">
