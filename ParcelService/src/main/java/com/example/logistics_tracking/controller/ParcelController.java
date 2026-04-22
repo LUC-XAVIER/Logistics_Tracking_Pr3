@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/parcels")
+@RequestMapping("/api/v1/parcels")
 @RequiredArgsConstructor
 public class ParcelController {
 
@@ -48,4 +48,11 @@ public class ParcelController {
         UUID ownerId = parcelService.getParcelOwner(parcelId);
         return ResponseEntity.ok(ownerId);
     }
+  @GetMapping("/available")
+  public ResponseEntity<List<ParcelResponse>> getAvailableParcels(
+    @RequestParam UUID sourceAgencyId,
+    @RequestParam UUID destAgencyId) {
+    List<ParcelResponse> parcels = parcelService.getAvailableParcels(sourceAgencyId, destAgencyId);
+    return ResponseEntity.ok(parcels);
+  }
 }

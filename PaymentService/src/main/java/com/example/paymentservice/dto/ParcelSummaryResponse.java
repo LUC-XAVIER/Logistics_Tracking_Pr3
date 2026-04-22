@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record ParcelSummaryResponse(
-        UUID id,
+        String id,
         BigDecimal weightKg,
         Integer fragilityLevel,
         String status,

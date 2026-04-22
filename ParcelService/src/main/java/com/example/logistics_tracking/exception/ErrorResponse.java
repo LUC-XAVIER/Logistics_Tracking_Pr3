@@ -1,4 +1,4 @@
-package com.logistics.parcel.exception;
+package com.example.logistics_tracking.exception;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
