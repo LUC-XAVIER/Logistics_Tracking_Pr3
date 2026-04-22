@@ -2,21 +2,12 @@ package com.example.paymentservice.entity;
 
 import com.example.paymentservice.enums.PaymentMethod;
 import com.example.paymentservice.enums.PaymentStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "payments")
@@ -30,36 +21,37 @@ public class Payment {
     @Id
     private UUID id;
 
-    private UUID parcelId;
+    @Column(nullable = false)
+    private String parcelId;
+
+    @Column(nullable = false)
+    private UUID userId;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentStatus status;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
-    private BigDecimal amount;
+    private String transactionId;
 
-    private String currency;
+    private String failureReason;
 
+    private Instant paidAt;
     private Instant createdAt;
-
     private Instant updatedAt;
 
     @PrePersist
     void onCreate() {
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
+        if (id == null) id = UUID.randomUUID();
         Instant now = Instant.now();
-        if (status == null) {
-            status = PaymentStatus.PENDING;
-        }
-        if (currency == null) {
-            currency = "XAF";
-        }
         createdAt = now;
         updatedAt = now;
+        if (status == null) status = PaymentStatus.PENDING;
     }
 
     @PreUpdate
