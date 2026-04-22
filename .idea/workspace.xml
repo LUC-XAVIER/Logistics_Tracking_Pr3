@@ -4,58 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="Feat(parcel service): updated parcel service with new changes matching the delivery service">
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/config/KafkaConsumerConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/config/KafkaProducerConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/AgencyCoordinatesResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/AvailableParcelResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/SegmentResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/entity/CoordinatesResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/entity/TripParcel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/entity/TripSegment.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/enums/SegmentStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/enums/TripParcelStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/enums/TripStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/event/PaymentCompletedEvent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/event/SegmentReachedEvent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/event/TripCompletedEvent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/exception/BusinessException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/exception/ErrorResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/listener/ParcelEventListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/repository/DriverTripRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/repository/TripParcelRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/repository/TripSegmentRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/KafkaEventPublisher.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/OsrmService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/CoordinatesResponse.java" afterDir="false" />
+    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="Feat(delivery service): implemented the delivery service">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/API_Gateway/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/API_Gateway/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/NotificationServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/NotificationServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/ParcelServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/ParcelServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/controller/DeliveryController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/CreateDeliveryRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/CreateDeliveryRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/DeliveryCheckpointResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/DeliveryCheckpointResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/DeliveryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/DeliveryResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/DeliverySummaryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/DeliverySummaryResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/NotificationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/NotificationResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/ParcelCreatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/ParcelCreatedEvent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/ParcelDeliveredEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/ParcelDeliveredEvent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/ParcelEventNotificationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/ParcelEventNotificationRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/ParcelLocationUpdatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/ParcelLocationUpdatedEvent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/ParcelStatusUpdateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/ParcelStatusUpdateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/ParcelSummaryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/ParcelSummaryResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/UpdateDeliveryStatusRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/UpdateDeliveryStatusRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/UpdateLocationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/old/UpdateLocationRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/AgencyController.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/AgencyController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -239,7 +189,7 @@
       <workItem from="1775383111853" duration="68000" />
       <workItem from="1775457541587" duration="41377000" />
       <workItem from="1776508010141" duration="1517000" />
-      <workItem from="1776756285640" duration="21505000" />
+      <workItem from="1776756285640" duration="23482000" />
     </task>
     <task id="LOCAL-00001" summary="Feat: implemented push notifications and notification functionality and started configuring kafka">
       <option name="closed" value="true" />
@@ -289,7 +239,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776789225154</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Feat(delivery service): implemented the delivery service">
+      <option name="closed" value="true" />
+      <created>1776815342182</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1776815342182</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -314,6 +272,7 @@
     <MESSAGE value="Feat(Kafka): started implementing kafka configurations" />
     <MESSAGE value="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events" />
     <MESSAGE value="Feat(parcel service): updated parcel service with new changes matching the delivery service" />
-    <option name="LAST_COMMIT_MESSAGE" value="Feat(parcel service): updated parcel service with new changes matching the delivery service" />
+    <MESSAGE value="Feat(delivery service): implemented the delivery service" />
+    <option name="LAST_COMMIT_MESSAGE" value="Feat(delivery service): implemented the delivery service" />
   </component>
 </project>
