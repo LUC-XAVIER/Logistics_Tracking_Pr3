@@ -20,33 +20,58 @@ spring:
                 exposed-headers:
                   - "*"
           routes:
+            - id: user-management-service-auth
+              uri: lb://UserManagementService
+              predicates:
+                - Path=/auth/**
+
             - id: parcel-service-parcels
               uri: lb://ParcelService
               predicates:
                 - Path=/api/v1/parcels/**
+              filters:
+                - name: JwtFilter
+
             - id: parcel-service-agencies
               uri: lb://ParcelService
               predicates:
                 - Path=/api/v1/agencies/**,/api/v1/routes/**, /api/parcels/**
+              filters:
+                - name: JwtFilter
+
             - id: parcel-service-routes
               uri: lb://ParcelService
               predicates:
                 - Path=/api/v1/routes/**
+              filters:
+                - name: JwtFilter
+
             - id: delivery-service
               uri: lb://DeliveryService
               predicates:
                 - Path=/api/v1/deliveries/**,/api/trips/**
+              filters:
+                - name: JwtFilter
+
             - id: payment-service
               uri: lb://PaymentService
               predicates:
                 - Path=/api/v1/payments/**
+              filters:
+                - name: JwtFilter
+
             - id: notification-service
               uri: lb://NotificationService
               predicates:
                 - Path=/api/v1/notifications/**
+              filters:
+                - name: JwtFilter
 server:
   port: 8765
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: 4tQT9UMVUmtI8FnJRFgN+Vg3mgyJB1Rlmp94Qfe3Gjk=

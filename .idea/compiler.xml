@@ -7,11 +7,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Logistics_Tracking" />
-        <module name="NotificationService" />
-        <module name="ServiceRegistry" />
         <module name="DeliveryService" />
         <module name="API_Gateway" />
+        <module name="Logistics_Tracking" />
+        <module name="NotificationService" />
+        <module name="UserManagementService" />
+        <module name="ServiceRegistry" />
         <module name="PaymentService" />
       </profile>
     </annotationProcessing>
@@ -24,6 +25,7 @@
       <module name="NotificationService" options="-parameters" />
       <module name="PaymentService" options="-parameters" />
       <module name="ServiceRegistry" options="-parameters" />
+      <module name="UserManagementService" options="-parameters" />
     </option>
   </component>
 </project>
