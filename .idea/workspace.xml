@@ -4,13 +4,53 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="Feat(delivery service): implemented the delivery service">
+    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelOwnerClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/UserServiceClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/UserContactResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/EmailSenderService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/ChangePasswordRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/UpdateUserRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/UserContactResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/UserResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/NotificationServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/NotificationServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/config/KafkaConsumerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/config/KafkaConsumerConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/DeliveryEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/DeliveryEventConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/ParcelEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/ParcelEventConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/PaymentEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/PaymentEventConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/DeliveryEventPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/DeliveryEventPayload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/ParcelEventPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/ParcelEventPayload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/PaymentEventPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/PaymentEventPayload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/NotificationDispatchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/NotificationDispatchService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/NotificationPersistenceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/NotificationPersistenceService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/event/ParcelCreatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/event/ParcelCreatedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/AuthResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/AuthResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/repository/UserRepo.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/repository/UserRepo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/fonin/IdeaProjects/Logistics_Tracking_Pr3" value="3Bcdgc9R53AlXWipM3g6eirXXDh" />
+    </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
     <option name="cachedIndexableFilesCount" value="137" />
@@ -19,8 +59,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Enum" />
         <option value="Interface" />
-        <option value="Exception" />
         <option value="Class" />
       </list>
     </option>
@@ -31,13 +71,13 @@
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
     &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;fotsing12&quot;
+    &quot;assignee&quot;: &quot;LUC-XAVIER&quot;
   }
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3&quot;,
-    &quot;accountId&quot;: &quot;5a118463-d01e-4334-94f5-4e975f53cfe9&quot;
+    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3.git&quot;,
+    &quot;accountId&quot;: &quot;e806b82a-6d4c-4690-a04a-cc66e4d8103e&quot;
   }
 }</component>
   <component name="KubernetesApiPersistence">{}</component>
@@ -65,8 +105,8 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Application.BCryptTest.executor&quot;: &quot;Run&quot;,
     &quot;Maven.API_Gateway [compile].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.ServiceRegistry [deploy].executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
     &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
@@ -84,13 +124,13 @@
     &quot;Spring Boot.NotificationServiceApplication.executor&quot;: &quot;Run&quot;,
     &quot;Spring Boot.PaymentServiceApplication.executor&quot;: &quot;Run&quot;,
     &quot;Spring Boot.ServiceRegistryApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.UserManagementServiceApplication.executor&quot;: &quot;Run&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
     &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;feature/notifications-kafka&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/ParcelService/src/main/java/com/example/logistics_tracking/exception&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -100,11 +140,15 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
+    ]
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\USER\Documents\Tutored Projects\Logistics_Tracking_Pr3\ParcelService\src\main\java\com\example\logistics_tracking\exception" />
       <recent name="C:\Users\USER\Documents\Tutored Projects\Logistics_Tracking_Pr3\NotificationService\src\main\resources" />
     </key>
   </component>
@@ -118,7 +162,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.DeliveryServiceApplication">
+  <component name="RunManager" selected="Spring Boot.UserManagementServiceApplication">
     <configuration name="ApiGatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="API_Gateway" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.api_gateway.ApiGatewayApplication" />
@@ -161,6 +205,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="UserManagementServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="UserManagementService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.usermanagementservice.UserManagementServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -187,92 +238,27 @@
       <workItem from="1775297390944" duration="5836000" />
       <workItem from="1775319690476" duration="708000" />
       <workItem from="1775383111853" duration="68000" />
-      <workItem from="1775457541587" duration="41377000" />
-      <workItem from="1776508010141" duration="1517000" />
-      <workItem from="1776756285640" duration="23482000" />
+      <workItem from="1776509231772" duration="361000" />
+      <workItem from="1776708343484" duration="11000" />
+      <workItem from="1776756092003" duration="19902000" />
+      <workItem from="1776778459891" duration="10624000" />
     </task>
-    <task id="LOCAL-00001" summary="Feat: implemented push notifications and notification functionality and started configuring kafka">
-      <option name="closed" value="true" />
-      <created>1775641891085</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1775641891085</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Feat(Kafka): started implementing kafka configurations">
-      <option name="closed" value="true" />
-      <created>1775653397676</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1775653397676</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Feat(Kafka): started implementing kafka configurations">
-      <option name="closed" value="true" />
-      <created>1775655703232</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1775655703232</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events">
-      <option name="closed" value="true" />
-      <created>1775746688223</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1775746688223</updated>
-    </task>
-    <task id="LOCAL-00005" summary="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events">
-      <option name="closed" value="true" />
-      <created>1776772810117</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1776772810117</updated>
-    </task>
-    <task id="LOCAL-00006" summary="Feat(parcel service): updated parcel service with new changes matching the delivery service">
-      <option name="closed" value="true" />
-      <created>1776789225154</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1776789225154</updated>
-    </task>
-    <task id="LOCAL-00007" summary="Feat(delivery service): implemented the delivery service">
-      <option name="closed" value="true" />
-      <created>1776815342182</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1776815342182</updated>
-    </task>
-    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
   <component name="VcsManagerConfiguration">
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
-    <MESSAGE value="Feat: implemented push notifications and notification functionality and started configuring kafka" />
-    <MESSAGE value="Feat(Kafka): started implementing kafka configurations" />
-    <MESSAGE value="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events" />
-    <MESSAGE value="Feat(parcel service): updated parcel service with new changes matching the delivery service" />
-    <MESSAGE value="Feat(delivery service): implemented the delivery service" />
-    <option name="LAST_COMMIT_MESSAGE" value="Feat(delivery service): implemented the delivery service" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>

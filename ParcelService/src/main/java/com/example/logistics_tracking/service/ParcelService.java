@@ -173,4 +173,10 @@ public class ParcelService {
                 .createdAt(parcel.getCreatedAt())
                 .build();
     }
+    @Transactional(readOnly = true)
+    public UUID getParcelOwner(String parcelId) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
+        return parcel.getUserId();
+    }
 }

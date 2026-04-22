@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "parcels")
@@ -20,7 +21,7 @@ public class Parcel {
     private String id;
 
     @Column(nullable = false)
-    private String userId;
+    private UUID userId;
 
     // Source: Either agency OR manual address
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,6 +1,6 @@
 package com.example.notificationservice.consumer;
 
-import com.example.notificationservice.client.ParcelServiceClient;
+import com.example.notificationservice.client.ParcelOwnerClient;
 import com.example.notificationservice.enums.NotificationEventType;
 import com.example.notificationservice.service.NotificationDispatchService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.UUID;
 public class DeliveryEventConsumer {
 
     private final NotificationDispatchService dispatchService;
-    private final ParcelServiceClient parcelOwnerClient;
+    private final ParcelOwnerClient parcelOwnerClient;
 
     @KafkaListener(topics = "parcel-events", groupId = "notification-service-group")
     public void onDeliveryEvent(Object payload) {
