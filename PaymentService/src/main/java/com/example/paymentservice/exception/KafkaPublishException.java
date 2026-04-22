@@ -1,4 +1,4 @@
-package com.example.paymentservice.exceptions;
+package com.example.paymentservice.exception;
 
 /**
  * Kafka Publish Exception

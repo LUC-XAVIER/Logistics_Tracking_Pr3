@@ -21,6 +21,7 @@ public class NotificationDispatchService {
     private final NotificationPersistenceService persistenceService;
     private final UserServiceClient userServiceClient;
     private final EmailSenderService emailSenderService;
+    private final SmsSender smsSender;
 
     public void dispatch(UUID userId, UUID parcelId,
                          String title, String message,
@@ -42,7 +43,8 @@ public class NotificationDispatchService {
                 recipientEmail, recipientPhone, NotificationStatus.SENT);
 
         sendPush(userId, title, message);
-        sendEmail(recipientEmail, title, message, eventType);
+        sendEmail(recipientEmail, message, eventType);
+        sendSms(recipientPhone, title, message);
     }
 
     private void sendPush(UUID userId, String title, String message) {
@@ -52,13 +54,22 @@ public class NotificationDispatchService {
         );
     }
 
-    private void sendEmail(String recipientEmail, String title,
-                           String message, NotificationEventType eventType) {
+    private void sendEmail(String recipientEmail, String message,
+                           NotificationEventType eventType) {
         if (recipientEmail == null || recipientEmail.isBlank()) {
-            log.warn("No email address available, skipping email notification");
+            log.warn("No email available, skipping email notification");
             return;
         }
         String subject = emailSenderService.resolveSubject(eventType);
         emailSenderService.sendEmail(recipientEmail, subject, message);
+    }
+
+    private void sendSms(String recipientPhone, String title, String message) {
+        if (recipientPhone == null || recipientPhone.isBlank()) {
+            log.warn("No phone number available, skipping SMS notification");
+            return;
+        }
+        String smsBody = title + ": " + message;
+        smsSender.send(recipientPhone, smsBody);
     }
 }

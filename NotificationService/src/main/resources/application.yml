@@ -37,5 +37,11 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 firebase:
+  service-account-path:${FIREBASE_CREDENTIALS_PATH:firebase-service-account-logistic-tracking.json}
   credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account-logistic-tracking.json}
   project-id: ${FIREBASE_PROJECT_ID:logistic-tracking-pr3}
+
+africastalking:
+  username: sandbox
+  api-key: your-africastalking-api-key
+  sender-id: your-sender-id
