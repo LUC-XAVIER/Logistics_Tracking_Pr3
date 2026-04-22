@@ -1,0 +1,33 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy service-registry
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_REGISTRY }}
+
+      - name: Wait for registry to be ready
+        run: sleep 60
+
+      - name: Deploy parcel-service
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_PARCEL }}
+
+      - name: Deploy delivery-service
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_DELIVERY }}
+
+      - name: Deploy notification-service
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_NOTIFICATION }}
+
+      - name: Deploy payment-service
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_PAYMENT }}
+
+      - name: Deploy user-service
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_USER }}
+
+      - name: Deploy api-gateway
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_GATEWAY }}

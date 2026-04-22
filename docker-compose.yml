@@ -1,0 +1,212 @@
+version: "3.9"
+
+services:
+
+  service-registry:
+    build:
+      context: ./ServiceRegistry
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    networks:
+      - logistics-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - logistics-net
+
+  logistics-db:
+    image: postgres:16-alpine
+    container_name: logistics-db
+    environment:
+      POSTGRES_DB: logistics_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - logistics_db_data:/var/lib/postgresql/data
+    networks:
+      - logistics-net
+
+  user-service:
+    build:
+      context: ./UserManagementService
+    container_name: user-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://logistics-db:5432/logistics_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASS}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+    ports:
+      - "8085:8085"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      logistics-db:
+        condition: service_started
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+  parcel-service:
+    build:
+      context: ./ParcelService
+    container_name: parcel-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://logistics-db:5432/logistics_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASS}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+    ports:
+      - "8082:8082"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      logistics-db:
+        condition: service_started
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+  delivery-service:
+    build:
+      context: ./DeliveryService
+    container_name: delivery-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://logistics-db:5432/logistics_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASS}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+    ports:
+      - "8083:8083"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      logistics-db:
+        condition: service_started
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./NotificationService
+    container_name: notification-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+      SMTP_HOST: ${SMTP_HOST}
+    ports:
+      - "8086:8086"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+
+  payment-service:
+    build:
+      context: ./PaymentService
+    container_name: payment-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://logistics-db:5432/logistics_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASS}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+    ports:
+      - "8084:8084"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      logistics-db:
+        condition: service_started
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+
+  api-gateway:
+    build:
+      context: ./API_Gateway
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8765:8765"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      parcel-service:
+        condition: service_started
+      delivery-service:
+        condition: service_started
+    networks:
+      - logistics-net
+    restart: unless-stopped
+
+
+networks:
+  logistics-net:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
+  logistics_db_data:
+
+
+
+
+
+
+
