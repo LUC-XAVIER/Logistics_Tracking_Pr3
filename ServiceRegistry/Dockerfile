@@ -1,6 +1,6 @@
-LABEL authors="Time_for_Business"
-
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+LABEL authors="magss0n"
+
 WORKDIR /app
 
 COPY pom.xml .
