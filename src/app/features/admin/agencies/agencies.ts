@@ -1,7 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../../../shared/sidebar/sidebar';
+import * as L from 'leaflet';
+
+// Fix Leaflet default icon issue
+const iconRetinaUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png';
+const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
+const shadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
+const iconDefault = L.icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = iconDefault;
 
 interface Agency {
   id: string;
@@ -26,13 +43,16 @@ interface NavItem {
 
 @Component({
   selector: 'app-admin-agencies',
-  standalone: true,  // Add this since you're using standalone components
+  standalone: true,
   templateUrl: './agencies.html',
   styleUrls: ['./agencies.css'],
-  imports: [CommonModule, FormsModule, SidebarComponent]  // Import required modules here
+  imports: [CommonModule, FormsModule, SidebarComponent]
 })
-export class AdminAgenciesComponent implements OnInit {
-  // Navigation items (same as dashboard)
+export class AdminAgenciesComponent implements OnInit, AfterViewInit {
+  private map: any;
+  private markers: any[] = [];
+  private mapInitialized: boolean = false;
+
   navItems: NavItem[] = [
     {
       id: "grid",
@@ -75,7 +95,6 @@ export class AdminAgenciesComponent implements OnInit {
     },
   ];
 
-  // Sample agencies data
   agencies: Agency[] = [
     {
       id: '1',
@@ -158,7 +177,6 @@ export class AdminAgenciesComponent implements OnInit {
   selectedStatus: string = '';
   activeTab: string = 'agencies';
 
-  // Form data for add/edit
   formData: Partial<Agency> = {
     name: '',
     country: '',
@@ -174,7 +192,6 @@ export class AdminAgenciesComponent implements OnInit {
   countries: string[] = ['Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Austria', 'Switzerland'];
   statuses: string[] = ['active', 'inactive'];
 
-  // Stats for the dashboard
   stats = {
     totalAgencies: 0,
     activeAgencies: 0,
@@ -188,6 +205,105 @@ export class AdminAgenciesComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    // Don't initialize map here since container might not be visible
+    // Map will be initialized when tab is clicked
+  }
+
+  private initMap(): void {
+    if (this.mapInitialized) return;
+    
+    const mapElement = document.getElementById('agencyMap');
+    if (!mapElement) return;
+
+    // Initialize map centered on Germany
+    this.map = L.map('agencyMap').setView([51.1657, 10.4515], 6);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      minZoom: 3
+    }).addTo(this.map);
+
+    this.mapInitialized = true;
+    this.addMarkersToMap();
+  }
+
+  private addMarkersToMap(): void {
+    if (!this.map) return;
+    
+    // Clear existing markers
+    this.markers.forEach(marker => this.map.removeLayer(marker));
+    this.markers = [];
+
+    // Add markers for each agency
+    this.agencies.forEach(agency => {
+      const markerColor = agency.status === 'active' ? '#10B981' : '#EF4444';
+      
+      const customIcon = L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`,
+        iconSize: [12, 12],
+        popupAnchor: [0, -6]
+      });
+
+      const marker = L.marker([agency.latitude, agency.longitude], { icon: customIcon })
+        .bindPopup(`
+          <div style="font-family: 'DM Sans', sans-serif; min-width: 200px;">
+            <strong style="color: ${markerColor};">🏢 ${agency.name}</strong><br/>
+            📍 ${agency.address}<br/>
+            📞 ${agency.phone}<br/>
+            ✉️ ${agency.email}<br/>
+            <span style="font-size: 11px; color: #6B7280;">Status: ${agency.status.toUpperCase()} | Parcels: ${agency.totalParcels || 0}</span>
+          </div>
+        `)
+        .addTo(this.map);
+      
+      this.markers.push(marker);
+    });
+
+    // Fit map to show all markers
+    if (this.agencies.length > 0 && this.map) {
+      const bounds = L.latLngBounds(this.agencies.map(a => [a.latitude, a.longitude]));
+      this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }
+
+  updateMapFilters(): void {
+    if (!this.map) return;
+    
+    // Filter markers based on current filters
+    const filteredAgencies = this.agencies.filter(agency => {
+      const matchesSearch = this.searchTerm === '' || 
+        agency.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        agency.town.toLowerCase().includes(this.searchTerm.toLowerCase());
+      
+      const matchesCountry = this.selectedCountry === '' || agency.country === this.selectedCountry;
+      const matchesStatus = this.selectedStatus === '' || agency.status === this.selectedStatus;
+      
+      return matchesSearch && matchesCountry && matchesStatus;
+    });
+
+    // Update markers visibility
+    this.markers.forEach((marker, index) => {
+      const agency = this.agencies[index];
+      const isVisible = filteredAgencies.some(f => f.id === agency.id);
+      if (isVisible) {
+        this.map.addLayer(marker);
+      } else {
+        this.map.removeLayer(marker);
+      }
+    });
+
+    // Fit bounds to visible markers
+    if (filteredAgencies.length > 0 && this.map) {
+      const bounds = L.latLngBounds(filteredAgencies.map(a => [a.latitude, a.longitude]));
+      this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }
 
   calculateStats(): void {
     this.stats.totalAgencies = this.agencies.length;
@@ -208,6 +324,11 @@ export class AdminAgenciesComponent implements OnInit {
       
       return matchesSearch && matchesCountry && matchesStatus;
     });
+    
+    // Update map when filters change
+    if (this.activeTab === 'map' && this.map) {
+      this.updateMapFilters();
+    }
   }
 
   onSearch(event: Event): void {
@@ -285,6 +406,9 @@ export class AdminAgenciesComponent implements OnInit {
     
     this.calculateStats();
     this.filterAgencies();
+    if (this.mapInitialized) {
+      this.addMarkersToMap();
+    }
     this.closeModal();
   }
 
@@ -293,6 +417,9 @@ export class AdminAgenciesComponent implements OnInit {
       this.agencies = this.agencies.filter(a => a.id !== id);
       this.calculateStats();
       this.filterAgencies();
+      if (this.mapInitialized) {
+        this.addMarkersToMap();
+      }
       
       if (this.selectedAgency?.id === id) {
         this.selectedAgency = null;
@@ -306,6 +433,16 @@ export class AdminAgenciesComponent implements OnInit {
 
   setActiveTab(tab: string): void {
     this.activeTab = tab;
+    if (tab === 'map') {
+      setTimeout(() => {
+        if (!this.mapInitialized) {
+          this.initMap();
+        } else if (this.map) {
+          this.map.invalidateSize();
+          this.updateMapFilters();
+        }
+      }, 100);
+    }
   }
 
   getStatusColor(status: string): string {
@@ -316,7 +453,6 @@ export class AdminAgenciesComponent implements OnInit {
     return status === 'active' ? '#D1FAE5' : '#FEE2E2';
   }
 
-  // Add this missing method
   getCountryDistribution(): { name: string; count: number; percentage: number }[] {
     const countryMap = new Map<string, number>();
     this.agencies.forEach(agency => {
@@ -331,5 +467,25 @@ export class AdminAgenciesComponent implements OnInit {
         percentage: (count / total) * 100
       }))
       .sort((a, b) => b.count - a.count);
+  }
+
+  // Map controls
+  zoomIn(): void {
+    if (this.map) {
+      this.map.zoomIn();
+    }
+  }
+
+  zoomOut(): void {
+    if (this.map) {
+      this.map.zoomOut();
+    }
+  }
+
+  centerMap(): void {
+    if (this.map && this.agencies.length > 0) {
+      const bounds = L.latLngBounds(this.agencies.map(a => [a.latitude, a.longitude]));
+      this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
   }
 }
