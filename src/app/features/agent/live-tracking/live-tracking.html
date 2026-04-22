@@ -1,1 +1,332 @@
-<p>live-tracking works!</p>
+<div class="dashboard-container">
+  <div class="dashboard-card">
+
+    <!-- SIDEBAR -->
+    <app-sidebar-agent></app-sidebar-agent>
+    
+    <!-- TRACKING PANEL -->
+    <div class="tracking-panel">
+      <!-- Header -->
+      <div class="tracking-header">
+        <div>
+          <h1 class="tracking-title">Live Tracking</h1>
+          <p class="tracking-subtitle">Tracking #: {{ trackingNumber }}</p>
+        </div>
+        <div class="header-actions">
+          <button class="action-btn secondary" (click)="openSpeedModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z"/>
+            </svg>
+            Adjust Speed
+          </button>
+          <button class="action-btn danger" *ngIf="!isDelivered" (click)="markAsDelivered()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            Mark Delivered
+          </button>
+        </div>
+      </div>
+
+      <!-- Map Container -->
+      <div class="map-container">
+        <svg width="100%" height="100%" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+          <!-- Background -->
+          <rect width="800" height="400" fill="#e8ead0" />
+          
+          <!-- City areas -->
+          <rect x="30" y="50" width="120" height="80" rx="8" fill="#c8dba0" />
+          <text x="90" y="95" text-anchor="middle" font-size="10" fill="#374151">Berlin Hub</text>
+          
+          <rect x="600" y="250" width="120" height="80" rx="8" fill="#c8dba0" />
+          <text x="660" y="295" text-anchor="middle" font-size="10" fill="#374151">Delivery Location</text>
+          
+          <!-- Route path -->
+          <path d="M 150 90 Q 300 90 350 150 Q 400 210 450 250 Q 550 290 600 290" 
+                fill="none" stroke="#3B82F6" stroke-width="4" stroke-dasharray="10 5" />
+          
+          <!-- Current position marker (animated) -->
+          <circle cx="150" cy="90" r="10" fill="#3B82F6" opacity="0.3">
+            <animate attributeName="r" values="10;15;10" dur="2s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="150" cy="90" r="6" fill="#3B82F6" />
+          <circle cx="150" cy="90" r="3" fill="white" />
+          
+          <!-- Pickup marker -->
+          <circle cx="90" cy="90" r="8" fill="#10B981" />
+          <circle cx="90" cy="90" r="4" fill="white" />
+          
+          <!-- Delivery marker -->
+          <circle cx="660" cy="290" r="8" fill="#EF4444" />
+          <circle cx="660" cy="290" r="4" fill="white" />
+          
+          <!-- Progress bar on route -->
+          <circle cx="150" cy="90" r="12" fill="none" stroke="#3B82F6" stroke-width="2" stroke-dasharray="75 75">
+            <animate attributeName="stroke-dashoffset" values="75;0" dur="10s" repeatCount="indefinite" />
+          </circle>
+        </svg>
+        
+        <!-- Map Controls with SVG icons -->
+        <div class="map-controls">
+          <button class="map-control">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+          <button class="map-control">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+          <button class="map-control">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3" />
+              <circle cx="12" cy="12" r="8" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Delivery Status Overlay -->
+        <div class="status-overlay" *ngIf="isDelivered">
+          <div class="status-overlay-content">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <h3>Delivery Completed!</h3>
+            <p>Package successfully delivered to customer</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-label">Delivery Progress</span>
+          <span class="progress-percentage">{{ currentProgress | number:'1.0-0' }}%</span>
+        </div>
+        <div class="progress-bar-container large">
+          <div class="progress-bar-fill" [style.width.%]="currentProgress"></div>
+        </div>
+        <div class="progress-stats">
+          <div class="stat">
+            <div class="stat-label">Distance Remaining</div>
+            <div class="stat-value">{{ distanceRemaining | number:'1.0-0' }} km</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Estimated Arrival</div>
+            <div class="stat-value">{{ formatDuration(etaMinutes) }}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Current Speed</div>
+            <div class="stat-value">{{ currentSpeed | number:'1.0-0' }} km/h</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Buttons -->
+      <div class="control-buttons">
+        <button class="control-btn play" *ngIf="!isTracking && !isDelivered" (click)="startSimulation()">
+          <span [innerHTML]="getControlIcon('play')"></span>
+          Start Delivery
+        </button>
+        <button class="control-btn pause" *ngIf="isTracking && !isPaused && !isDelivered" (click)="pauseSimulation()">
+          <span [innerHTML]="getControlIcon('pause')"></span>
+          Pause
+        </button>
+        <button class="control-btn play" *ngIf="isTracking && isPaused && !isDelivered" (click)="resumeSimulation()">
+          <span [innerHTML]="getControlIcon('play')"></span>
+          Resume
+        </button>
+        <button class="control-btn reset" *ngIf="isTracking && !isDelivered" (click)="resetSimulation()">
+          <span [innerHTML]="getControlIcon('reset')"></span>
+          Reset
+        </button>
+      </div>
+
+      <!-- Route Segments -->
+      <div class="segments-section">
+        <h3 class="section-title">Route Segments</h3>
+        <div class="segments-list">
+          <div *ngFor="let segment of routeSegments" class="segment-card" (click)="selectSegment(segment)">
+            <div class="segment-icon" [style.background]="segment.color">
+  <span [innerHTML]="segment.icon"></span>
+</div>
+            <div class="segment-info">
+              <div class="segment-type">{{ segment.type | uppercase }}</div>
+              <div class="segment-distance">{{ segment.distance }} km • {{ formatDuration(segment.duration) }}</div>
+            </div>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Updates -->
+      <div class="updates-section">
+        <h3 class="section-title">Delivery Updates</h3>
+        <div class="updates-list">
+          <div *ngFor="let update of deliveryUpdates" class="update-item">
+            <div class="update-time">{{ formatTime(update.timestamp) }}</div>
+            <div class="update-content">
+              <div class="update-status">{{ update.status }}</div>
+              <div class="update-message">{{ update.message }}</div>
+              <div class="update-location">{{ update.location }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO PANEL -->
+    <div class="info-panel">
+      <div class="parcel-info">
+        <h3 class="info-title">Parcel Information</h3>
+        <div class="info-list">
+          <div class="info-row">
+            <span class="info-label">Tracking Number</span>
+            <span class="info-value">{{ trackingNumber }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Customer</span>
+            <span class="info-value">{{ customerName }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Phone</span>
+            <span class="info-value">{{ customerPhone }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Pickup Address</span>
+            <span class="info-value">{{ pickupAddress }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Delivery Address</span>
+            <span class="info-value">{{ deliveryAddress }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="delivery-info">
+        <h3 class="info-title">Delivery Details</h3>
+        <div class="info-list">
+          <div class="info-row">
+            <span class="info-label">Fragility Level</span>
+            <span class="info-value">
+              <span class="fragility-badge" [class]="getFragilityClass(fragilityLevel)">
+                {{ getFragilityText(fragilityLevel) }} ({{ fragilityLevel }}/10)
+              </span>
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Base Speed</span>
+            <span class="info-value">{{ baseSpeed }} km/h</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Adjusted Speed</span>
+            <span class="info-value">{{ adjustedSpeed | number:'1.0-0' }} km/h</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Total Distance</span>
+            <span class="info-value">{{ totalDistance }} km</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="simulation-info">
+        <h3 class="info-title">GPS Simulation</h3>
+        <div class="simulation-controls">
+          <div class="input-group">
+            <label>Latitude</label>
+            <input type="number" class="form-control" [(ngModel)]="manualLatitude" step="0.0001">
+          </div>
+          <div class="input-group">
+            <label>Longitude</label>
+            <input type="number" class="form-control" [(ngModel)]="manualLongitude" step="0.0001">
+          </div>
+          <button class="update-btn" (click)="updateManualPosition()">
+            Update Position
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Speed Adjustment Modal -->
+<div class="modal-overlay" *ngIf="showSpeedModal" (click)="closeSpeedModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Adjust Delivery Speed</h2>
+      <button class="modal-close" (click)="closeSpeedModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Current Speed (km/h)</label>
+        <input type="number" class="form-control" [(ngModel)]="customSpeed" step="5">
+      </div>
+      <div class="info-note">
+        <strong>Note:</strong> Speed affects estimated delivery time. Fragile parcels have speed restrictions.
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeSpeedModal()">Cancel</button>
+      <button class="btn-save" (click)="updateSpeed()">Update Speed</button>
+    </div>
+  </div>
+</div>
+
+<!-- Route Segment Details Modal -->
+<div class="modal-overlay" *ngIf="selectedSegment" (click)="closeSegmentModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ selectedSegment.type | uppercase }} Segment</h2>
+      <button class="modal-close" (click)="closeSegmentModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="segment-details">
+        <div class="detail-row">
+          <span class="label">From:</span>
+          <span class="value">{{ selectedSegment.startPoint }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">To:</span>
+          <span class="value">{{ selectedSegment.endPoint }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Distance:</span>
+          <span class="value">{{ selectedSegment.distance }} km</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Duration:</span>
+          <span class="value">{{ formatDuration(selectedSegment.duration) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Speed Limit:</span>
+          <span class="value">
+            <span *ngIf="selectedSegment.type === 'town'">50 km/h</span>
+            <span *ngIf="selectedSegment.type === 'highway'">100 km/h</span>
+            <span *ngIf="selectedSegment.type === 'motorway'">120 km/h</span>
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeSegmentModal()">Close</button>
+    </div>
+  </div>
+</div>
