@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: ServiceRegistry
+
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: service-registry
+  client:
+    # This is the registry itself — it should NOT register with itself
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # Wait for a minimum number of services before starting
+    wait-time-in-ms-when-sync-empty: 0
+    # How long to wait before evicting unavailable instances
+    eviction-interval-timer-in-ms: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
