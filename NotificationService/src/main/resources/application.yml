@@ -38,3 +38,8 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
 firebase:
   service-account-path:
+
+africastalking:
+  username: sandbox
+  api-key: your-africastalking-api-key
+  sender-id: your-sender-id

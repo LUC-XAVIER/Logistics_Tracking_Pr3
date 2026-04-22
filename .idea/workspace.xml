@@ -4,43 +4,32 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelOwnerClient.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/UserServiceClient.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/UserContactResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/EmailSenderService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/ChangePasswordRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/UpdateUserRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/UserContactResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/UserResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail">
+      <change afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/SmsSenderImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/jkj.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/event/ParcelCreatedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/event/PaymentCompletedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/event/PaymentFailedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/BusinessException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/listener/ParcelEventListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/service/KafkaEventPublisher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/service/jkk.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/NotificationServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/NotificationServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/config/KafkaConsumerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/config/KafkaConsumerConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/DeliveryEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/DeliveryEventConsumer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/ParcelEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/ParcelEventConsumer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/PaymentEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/PaymentEventConsumer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/DeliveryEventPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/DeliveryEventPayload.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/ParcelEventPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/ParcelEventPayload.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/PaymentEventPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/dto/PaymentEventPayload.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/NotificationDispatchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/NotificationDispatchService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/NotificationPersistenceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/service/NotificationPersistenceService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/event/ParcelCreatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/event/ParcelCreatedEvent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/AuthResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/AuthResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/repository/UserRepo.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/repository/UserRepo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaConsumerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaConsumerConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaProducerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaProducerConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/entity/Payment.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/entity/Payment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/enums/PaymentMethod.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/enums/PaymentMethod.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/enums/PaymentStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/enums/PaymentStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exceptions/BusinessException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exceptions/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/ErrorResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exceptions/EventProcessingException.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/EventProcessingException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exceptions/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exceptions/KafkaPublishException.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/KafkaPublishException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/repository/PaymentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/repository/PaymentRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,12 +63,12 @@
     &quot;assignee&quot;: &quot;LUC-XAVIER&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3.git&quot;,
-    &quot;accountId&quot;: &quot;e806b82a-6d4c-4690-a04a-cc66e4d8103e&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3",
+    "accountId": "5a118463-d01e-4334-94f5-4e975f53cfe9"
   }
-}</component>
+}]]></component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -242,7 +231,17 @@
       <workItem from="1776708343484" duration="11000" />
       <workItem from="1776756092003" duration="19902000" />
       <workItem from="1776778459891" duration="10624000" />
+      <workItem from="1776859001827" duration="2384000" />
     </task>
+    <task id="LOCAL-00001" summary="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail">
+      <option name="closed" value="true" />
+      <created>1776847726735</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1776847726735</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -252,6 +251,8 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
+    <MESSAGE value="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail" />
+    <option name="LAST_COMMIT_MESSAGE" value="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
