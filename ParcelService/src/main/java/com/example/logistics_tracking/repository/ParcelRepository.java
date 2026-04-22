@@ -16,7 +16,7 @@ public interface ParcelRepository extends JpaRepository<Parcel, String> {
 
     List<Parcel> findByUserIdAndStatus(String userId, ParcelStatus status);
 
-    List<Parcel> findBySourceAgency_IdAndDestAgency_IdAndStatus(
+    List<Parcel> findBySourceAgencyIdAndDestAgencyIdAndStatus(
             UUID sourceAgencyId,
             UUID destAgencyId,
             ParcelStatus status

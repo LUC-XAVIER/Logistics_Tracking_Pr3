@@ -1,7 +1,7 @@
 package com.example.logistics_tracking.service;
 
 import com.example.logistics_tracking.event.ParcelCreatedEvent;
-import com.logistics.parcel.exception.BusinessException;
+import com.example.logistics_tracking.exception.BusinessException;
 import com.example.logistics_tracking.entity.Coordinates;
 import com.example.logistics_tracking.dto.ParcelRequest;
 import com.example.logistics_tracking.dto.ParcelResponse;
@@ -179,4 +179,15 @@ public class ParcelService {
                 .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
         return parcel.getUserId();
     }
+  public List<ParcelResponse> getAvailableParcels(UUID sourceAgencyId, UUID destAgencyId) {
+    List<Parcel> parcels = parcelRepository.findBySourceAgencyIdAndDestAgencyIdAndStatus(
+      sourceAgencyId,
+      destAgencyId,
+      ParcelStatus.WAITING_FOR_DRIVER
+    );
+
+    return parcels.stream()
+      .map(this::mapToResponse)
+      .collect(Collectors.toList());
+  }
 }

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record PaymentQuoteRequest(
-        UUID parcelId,
+        String parcelId,
         @NotNull @DecimalMin("0.1") BigDecimal weightKg,
         @NotNull @Min(1) @Max(10) Integer fragilityLevel,
         Double distanceKm
