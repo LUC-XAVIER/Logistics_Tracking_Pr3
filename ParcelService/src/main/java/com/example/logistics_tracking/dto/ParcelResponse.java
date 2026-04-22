@@ -5,6 +5,7 @@ import com.example.logistics_tracking.enums.ParcelStatus;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 public class ParcelResponse {
 
     private String id;
-    private String userId;
+    private UUID userId;
 
     private String sourceAgencyId;
     private String sourceAgencyName;

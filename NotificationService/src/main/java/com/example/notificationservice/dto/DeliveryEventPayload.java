@@ -1,15 +1,29 @@
+
 package com.example.notificationservice.dto;
 
-import java.util.UUID;
 import lombok.Data;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 @Data
 public class DeliveryEventPayload {
-    private UUID parcelId;
-    private UUID userId;
-    private String recipientEmail;
-    private String recipientPhone;
-    private Integer progressPercent;  // used for milestone gating
-    private String newEta;            // used for DELIVERY_RESCHEDULED
     private String eventType;
+    private String eventId;
+    private UUID tripId;
+    private UUID segmentId;
+    private UUID driverId;
+    private Integer segmentOrder;
+    private Integer totalSegments;
+    private Double latitude;
+    private Double longitude;
+    private Double distanceTraveledKm;
+    private Double distanceRemainingKm;
+    private List<String> parcelIds;
+    private UUID sourceAgencyId;
+    private UUID destAgencyId;
+    private Double totalDistanceKm;
+    private Instant completedAt;
+    private Instant timestamp;
 }

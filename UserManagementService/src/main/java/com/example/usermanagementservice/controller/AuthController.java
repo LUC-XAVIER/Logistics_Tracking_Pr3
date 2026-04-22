@@ -4,6 +4,7 @@ import com.example.usermanagementservice.config.JwtUtil;
 import com.example.usermanagementservice.dto.AuthRequest;
 import com.example.usermanagementservice.dto.AuthResponse;
 import com.example.usermanagementservice.dto.SignupRequest;
+import com.example.usermanagementservice.dto.UserResponse;
 import com.example.usermanagementservice.entity.User;
 import com.example.usermanagementservice.service.UserService;
 import org.slf4j.Logger;
@@ -60,7 +61,7 @@ public class AuthController {
             String token = jwtUtil.generateToken(userDetails.getUsername());
             logger.info("user logged in successfully");
 
-            return ResponseEntity.ok(new AuthResponse(token, user));
+            return ResponseEntity.ok(new AuthResponse(token, mapToUserResponse(user)));
         } catch (BadCredentialsException ex){
             logger.warn("Invalid login attempt for user with email: {}", request.getEmail());
             return ResponseEntity.badRequest().body(Map.of(
@@ -104,7 +105,7 @@ public class AuthController {
 
             userService.createUser(user);
 
-            return ResponseEntity.ok(new AuthResponse(jwtUtil.generateToken(user.getEmail()), user));
+            return ResponseEntity.ok(new AuthResponse(jwtUtil.generateToken(user.getEmail()), mapToUserResponse(user)));
         } catch (Exception e){
             logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
@@ -112,6 +113,17 @@ public class AuthController {
                     "message", "An error occurred during registration"
             ));
         }
+    }
+    private UserResponse mapToUserResponse(User user) {
+        return UserResponse.builder()
+                .userId(user.getUserId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .address(user.getAddress())
+                .role(user.getRole())
+                .build();
     }
 }
 

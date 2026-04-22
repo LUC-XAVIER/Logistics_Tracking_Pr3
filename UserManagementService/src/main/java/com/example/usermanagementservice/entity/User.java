@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
@@ -16,7 +17,7 @@ import java.util.Date;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private UUID userId;
 
     private String firstName;
     private String lastName;

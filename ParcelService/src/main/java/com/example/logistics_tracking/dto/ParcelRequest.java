@@ -3,6 +3,8 @@ package com.example.logistics_tracking.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -10,7 +12,7 @@ import lombok.*;
 public class ParcelRequest {
 
     @NotBlank(message = "User ID is required")
-    private String userId;
+    private UUID userId;
 
     @NotBlank(message = "Source agency ID is required")
     private String sourceAgencyId;

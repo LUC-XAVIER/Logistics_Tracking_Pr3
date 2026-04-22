@@ -1,5 +1,6 @@
 package com.example.logistics_tracking.service;
 
+import com.example.logistics_tracking.dto.CoordinatesResponse;
 import com.logistics.parcel.exception.BusinessException;
 import com.example.logistics_tracking.dto.AgencyResponse;
 import com.example.logistics_tracking.entity.Agency;

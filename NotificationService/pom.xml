@@ -30,6 +30,12 @@
 		<java.version>21</java.version>
 		<spring-cloud.version>2025.1.1</spring-cloud.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 
 	<dependencyManagement>
 		<dependencies>
@@ -52,6 +58,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.AfricasTalkingLtd.africastalking-java</groupId>
+			<artifactId>core</artifactId>
+			<version>3.4.11</version>
 		</dependency>
 
 		<!-- Spring Boot Web -->
