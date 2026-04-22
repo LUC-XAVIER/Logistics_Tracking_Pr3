@@ -1,7 +1,5 @@
 package com.example.paymentservice.exception;
 
-import com.example.paymentservice.exception.BusinessException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +15,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+    @ExceptionHandler(com.example.payment_service.exception.BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(com.example.payment_service.exception.BusinessException ex) {
         log.warn("Business exception: {}", ex.getMessage());
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
