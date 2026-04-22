@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record CreatePaymentRequest(
-        @NotNull UUID parcelId,
+        @NotNull String parcelId,
         @NotNull PaymentMethod paymentMethod,
         BigDecimal quotedAmount,
         String currency

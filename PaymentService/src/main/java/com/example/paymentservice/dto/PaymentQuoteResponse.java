@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record PaymentQuoteResponse(
-        UUID parcelId,
+        String parcelId,
         BigDecimal baseAmount,
         BigDecimal fragilityFee,
         BigDecimal distanceFee,
