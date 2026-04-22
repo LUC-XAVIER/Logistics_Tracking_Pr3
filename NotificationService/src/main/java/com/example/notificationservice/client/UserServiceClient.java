@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.UUID;
 
-@FeignClient(name = "UserManagementService", url = "${services.user-service.url}")
+@FeignClient(name = "UserManagementService")
 public interface UserServiceClient {
 
-    @GetMapping("/api/users/{userId}/contact")
+    @GetMapping("/api/v1/users/{userId}/contact")
     UserContactResponse getUserContact(@PathVariable("userId") UUID userId);
 }
