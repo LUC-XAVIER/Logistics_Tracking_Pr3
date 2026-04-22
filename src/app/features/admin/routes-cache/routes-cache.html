@@ -197,64 +197,30 @@
           <p>Try adjusting your filters or add a new route</p>
         </div>
       </div>
-
+ 
       <!-- Map View -->
-      <div *ngIf="activeView === 'map'" class="map-view">
-        <div class="map-placeholder">
-          <svg width="100%" height="100%" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
-            <!-- Background -->
-            <rect width="1000" height="500" fill="#e8ead0" />
-            
-            <!-- Cities/Regions -->
-            <rect x="50" y="100" width="120" height="80" rx="8" fill="#c8dba0" />
-            <text x="110" y="140" text-anchor="middle" font-size="12" fill="#374151">Berlin Hub</text>
-            
-            <rect x="250" y="350" width="120" height="80" rx="8" fill="#c8dba0" />
-            <text x="310" y="390" text-anchor="middle" font-size="12" fill="#374151">Munich Center</text>
-            
-            <rect x="50" y="400" width="120" height="80" rx="8" fill="#c8dba0" />
-            <text x="110" y="440" text-anchor="middle" font-size="12" fill="#374151">Hamburg Port</text>
-            
-            <rect x="350" y="200" width="120" height="80" rx="8" fill="#c8dba0" />
-            <text x="410" y="240" text-anchor="middle" font-size="12" fill="#374151">Cologne Hub</text>
-            
-            <rect x="550" y="300" width="120" height="80" rx="8" fill="#c8dba0" />
-            <text x="610" y="340" text-anchor="middle" font-size="12" fill="#374151">Frankfurt Airport</text>
-            
-            <!-- Routes -->
-            <line x1="170" y1="140" x2="310" y2="390" stroke="#3B82F6" stroke-width="3" stroke-dasharray="8 4" />
-            <line x1="110" y1="180" x2="110" y2="400" stroke="#F59E0B" stroke-width="3" stroke-dasharray="8 4" />
-            <line x1="170" y1="140" x2="350" y2="240" stroke="#10B981" stroke-width="3" stroke-dasharray="8 4" />
-            <line x1="410" y1="280" x2="610" y2="340" stroke="#8B5CF6" stroke-width="3" stroke-dasharray="8 4" />
-            <line x1="310" y1="390" x2="610" y2="340" stroke="#EF4444" stroke-width="3" stroke-dasharray="8 4" />
-            
-            <!-- Animated dots -->
-            <circle cx="170" cy="140" r="6" fill="#3B82F6">
-              <animate attributeName="r" values="4;8;4" dur="2s" repeatCount="indefinite" />
-            </circle>
-          </svg>
-          
-          <div class="map-controls">
-            <div class="map-control">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </div>
-            <div class="map-control">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </div>
-            <div class="map-control">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="3" />
-                <circle cx="12" cy="12" r="8" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
+<div *ngIf="activeView === 'map'" class="map-view">
+  <div id="routeMap" class="route-map"></div>
+  <div class="map-controls">
+    <button class="map-control" (click)="zoomIn()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    </button>
+    <button class="map-control" (click)="zoomOut()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    </button>
+    <button class="map-control" (click)="centerMap()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3" />
+        <circle cx="12" cy="12" r="8" />
+      </svg>
+    </button>
+  </div>
+</div>
     </div>
   </div>
 </div>

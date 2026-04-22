@@ -1,8 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { SidebarComponent } from '../../../shared/sidebar/sidebar'; 
+import { SidebarComponent } from '../../../shared/sidebar/sidebar';
+import * as L from 'leaflet';
+
+// Fix Leaflet default icon issue
+const iconRetinaUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png';
+const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
+const shadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
+const iconDefault = L.icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = iconDefault;
 
 interface OrderStep {
   date: string;
@@ -54,7 +71,11 @@ interface CustomerInfo {
   styleUrls: ['./dashboard.css'],
   imports: [CommonModule, FormsModule, SidebarComponent]
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, AfterViewInit {
+  private map: any;
+  private currentMarker: any;
+  private routeLine: any;
+
   orders: Order[] = [
     {
       id: "#AD345Jk758",
@@ -106,6 +127,20 @@ export class AdminDashboardComponent implements OnInit {
   activeOrder: Order;
   activeTab: string = "Vehicle";
 
+  // Route coordinates for Berlin
+  private pickupCoords: [number, number] = [52.5123, 13.3889];
+  private deliveryCoords: [number, number] = [52.5240, 13.4100];
+  private currentCoords: [number, number] = [52.5163, 13.3990];
+  private routePoints: [number, number][] = [
+    [52.5123, 13.3889], // Pickup
+    [52.5140, 13.3920],
+    [52.5160, 13.3950],
+    [52.5180, 13.3980],
+    [52.5200, 13.4010],
+    [52.5220, 13.4050],
+    [52.5240, 13.4100]  // Delivery
+  ];
+
   constructor(private sanitizer: DomSanitizer) {
     this.activeOrder = this.orders[0];
     this.initializeStats();
@@ -116,6 +151,128 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    this.initMap();
+  }
+
+  private initMap(): void {
+    // Initialize map centered on Berlin
+    this.map = L.map('map').setView([52.5200, 13.4050], 13);
+
+    // Add OpenStreetMap tiles (FREE!)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      minZoom: 3
+    }).addTo(this.map);
+
+    // Add pickup marker (Green)
+    const pickupMarker = L.marker(this.pickupCoords)
+      .bindPopup(`
+        <div style="font-family: 'DM Sans', sans-serif; min-width: 150px;">
+          <strong style="color: #10B981;">📦 Pickup Location</strong><br/>
+          Berlin Central Hub<br/>
+          Mohrenstrasse 37, 10117 Berlin<br/>
+          <span style="font-size: 11px; color: #6B7280;">Ready for pickup</span>
+        </div>
+      `)
+      .addTo(this.map);
+
+    // Add delivery marker (Red)
+    const deliveryMarker = L.marker(this.deliveryCoords)
+      .bindPopup(`
+        <div style="font-family: 'DM Sans', sans-serif; min-width: 150px;">
+          <strong style="color: #EF4444;">📍 Delivery Location</strong><br/>
+          Goethestraße 1, 10115 Berlin<br/>
+          <span style="font-size: 11px; color: #6B7280;">Customer: Anna Bauer</span>
+        </div>
+      `)
+      .addTo(this.map);
+
+    // Add current position marker (Blue, animated)
+    const currentIcon = L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div style="background-color: #3B82F6; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px #3B82F6; animation: pulse 1.5s infinite;"></div>`,
+      iconSize: [14, 14],
+      popupAnchor: [0, -7]
+    });
+
+    this.currentMarker = L.marker(this.currentCoords, { icon: currentIcon })
+      .bindPopup(`
+        <div style="font-family: 'DM Sans', sans-serif;">
+          <strong>🚚 Current Position</strong><br/>
+          In Transit - ${this.activeOrder.progress}% complete<br/>
+          ETA: 30 minutes
+        </div>
+      `)
+      .addTo(this.map);
+
+    // Draw route line with dashed style
+    this.routeLine = L.polyline(this.routePoints, {
+      color: '#3B82F6',
+      weight: 4,
+      opacity: 0.8,
+      dashArray: '10, 10'
+    }).addTo(this.map);
+
+    // Add custom CSS animation for pulse effect
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .custom-div-icon div {
+        animation: pulse 1.5s infinite;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Fit map to show all markers
+    const bounds = L.latLngBounds(this.routePoints);
+    this.map.fitBounds(bounds, { padding: [50, 50] });
+  }
+
+  // Public methods for map controls
+  zoomIn(): void {
+    if (this.map) {
+      this.map.zoomIn();
+    }
+  }
+
+  zoomOut(): void {
+    if (this.map) {
+      this.map.zoomOut();
+    }
+  }
+
+  centerMap(): void {
+    if (this.map) {
+      const bounds = L.latLngBounds(this.routePoints);
+      this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }
+
+  // Update current position based on progress
+  updateCurrentPosition(progress: number): void {
+    if (!this.currentMarker) return;
+    
+    const index = Math.floor(progress / 100 * (this.routePoints.length - 1));
+    if (index < this.routePoints.length) {
+      const newCoords = this.routePoints[index];
+      this.currentMarker.setLatLng(newCoords);
+      this.currentMarker.bindPopup(`
+        <div style="font-family: 'DM Sans', sans-serif;">
+          <strong>🚚 Current Position</strong><br/>
+          In Transit - ${progress}% complete<br/>
+          ETA: ${Math.max(0, Math.round(30 * (1 - progress / 100)))} minutes
+        </div>
+      `);
+    }
+  }
 
   initializeStats(): void {
     this.stats = [
@@ -198,6 +355,8 @@ export class AdminDashboardComponent implements OnInit {
   setActiveOrder(order: Order): void {
     this.activeOrder = order;
     this.initializeOrderDetails();
+    // Update map progress
+    this.updateCurrentPosition(order.progress);
   }
 
   setActiveTab(tab: string): void {
