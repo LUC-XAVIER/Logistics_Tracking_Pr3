@@ -20,50 +20,36 @@ spring:
                 exposed-headers:
                   - "*"
           routes:
-            - id: user-management-service-auth
+            - id: user-management-service
               uri: lb://UserManagementService
               predicates:
-                - Path=/auth/**
+                - Path=/auth/**,/logistics/auth/**,/logistics/api/v1/users/**
 
-            - id: parcel-service-parcels
+            - id: parcel-service
               uri: lb://ParcelService
               predicates:
-                - Path=/api/v1/parcels/**
-              filters:
-                - name: JwtFilter
-
-            - id: parcel-service-agencies
-              uri: lb://ParcelService
-              predicates:
-                - Path=/api/v1/agencies/**,/api/v1/routes/**, /api/parcels/**
-              filters:
-                - name: JwtFilter
-
-            - id: parcel-service-routes
-              uri: lb://ParcelService
-              predicates:
-                - Path=/api/v1/routes/**
+                - Path=/logistics/api/v1/agencies/**,/logistics/api/v1/parcels/**,/logistics/api/v1/routes/**
               filters:
                 - name: JwtFilter
 
             - id: delivery-service
               uri: lb://DeliveryService
               predicates:
-                - Path=/api/v1/deliveries/**,/api/trips/**
+                - Path=/logistics/api/v1/trips/**
               filters:
                 - name: JwtFilter
 
             - id: payment-service
               uri: lb://PaymentService
               predicates:
-                - Path=/api/v1/payments/**
+                - Path=/logistics/api/v1/payments/**
               filters:
                 - name: JwtFilter
 
             - id: notification-service
               uri: lb://NotificationService
               predicates:
-                - Path=/api/v1/notifications/**
+                - Path=/logistics/api/v1/notifications/**
               filters:
                 - name: JwtFilter
 server:
