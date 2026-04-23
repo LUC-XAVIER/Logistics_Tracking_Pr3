@@ -1,4 +1,4 @@
-package com.example.delivery_service.exception;
+package com.example.deliveryservice.exception;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;

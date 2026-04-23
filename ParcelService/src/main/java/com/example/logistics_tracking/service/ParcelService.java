@@ -190,4 +190,18 @@ public class ParcelService {
       .map(this::mapToResponse)
       .collect(Collectors.toList());
   }
+
+  @Transactional
+  public void updateParcelStatusToWaitingForDriver(String parcelId) {
+      Parcel parcel = parcelRepository.findById(parcelId)
+              .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
+      
+      if (parcel.getStatus() == ParcelStatus.PENDING_PAYMENT) {
+          parcel.setStatus(ParcelStatus.WAITING_FOR_DRIVER);
+          parcelRepository.save(parcel);
+          log.info("Parcel {} status updated to WAITING_FOR_DRIVER", parcelId);
+      } else {
+          log.warn("Parcel {} is not in PENDING_PAYMENT status. Current status: {}", parcelId, parcel.getStatus());
+      }
+  }
 }

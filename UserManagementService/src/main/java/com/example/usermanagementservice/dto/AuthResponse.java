@@ -1,6 +1,5 @@
 package com.example.usermanagementservice.dto;
 
-import com.example.usermanagementservice.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
