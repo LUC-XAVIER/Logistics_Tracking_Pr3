@@ -21,6 +21,7 @@ public class TripResponse {
     private Integer segmentCount;
     private TripStatus status;
     private List<SegmentResponse> segments;
+    private List<double[]> fullPath;
     private Integer parcelsCount;
     private Instant startedAt;
     private Instant createdAt;

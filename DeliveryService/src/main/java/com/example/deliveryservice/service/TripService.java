@@ -60,6 +60,7 @@ public class TripService {
                 .destLongitude(destCoords.getLongitude())
                 .totalDistanceKm(route.totalDistanceKm())
                 .segmentCount(route.segmentCount())
+                .fullPath(route.fullPath())
                 .status(TripStatus.COLLECTING)
                 .build();
 
@@ -305,6 +306,7 @@ public class TripService {
                 .status(trip.getStatus())
                 .segments(segmentResponses)
                 .parcelsCount(parcelsCount)
+                .fullPath(trip.getFullPath())
                 .startedAt(trip.getStartedAt())
                 .createdAt(trip.getCreatedAt())
                 .build();
