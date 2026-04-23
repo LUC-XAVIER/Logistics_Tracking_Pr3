@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/trips")
+@RequestMapping("/logistics/api/v1/trips")
 @RequiredArgsConstructor
 public class TripController {
 
