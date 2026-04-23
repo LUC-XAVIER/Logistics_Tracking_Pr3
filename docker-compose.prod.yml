@@ -3,7 +3,7 @@ version: "3.9"
 services:
 
   service-registry:
-    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/service-registry:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/service-registry:latest
     container_name: service-registry
     ports:
       - "8761:8761"
@@ -115,12 +115,12 @@ services:
       - logistics-net
 
   user-service:
-    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/user-service:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/user-service:latest
     container_name: user-service
     env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_user_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
@@ -141,12 +141,12 @@ services:
     restart: unless-stopped
 
   parcel-service:
-    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/parcel-service:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/parcel-service:latest
     container_name: parcel-service
     env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
@@ -172,12 +172,12 @@ services:
     restart: unless-stopped
 
   delivery-service:
-    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/delivery-service:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/delivery-service:latest
     container_name: delivery-service
     env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
@@ -202,12 +202,12 @@ services:
     restart: unless-stopped
 
   payment-service:
-    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/payment-service:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/payment-service:latest
     container_name: payment-service
     env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
@@ -242,12 +242,12 @@ services:
     restart: unless-stopped
 
   notification-service:
-    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/notification-service:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/notification-service:latest
     container_name: notification-service
     env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/logistics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
@@ -275,7 +275,7 @@ services:
     restart: unless-stopped
 
   api-gateway:
-    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/api-gateway:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/api-gateway:latest
     container_name: api-gateway
     env_file: .env
     environment:
