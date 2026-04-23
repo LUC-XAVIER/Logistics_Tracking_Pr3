@@ -1,5 +1,8 @@
 package com.example.deliveryservice.exception;
 
+import com.example.deliveryservice.exception.ErrorResponse;
+import com.example.deliveryservice.exception.BusinessException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +19,11 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<com.example.delivery_service.exception.ErrorResponse> handleBusinessException(BusinessException ex) {
+    public ResponseEntity<com.example.deliveryservice.exception.ErrorResponse> handleBusinessException(
+            BusinessException ex) {
         log.warn("Business exception: {}", ex.getMessage());
-        com.example.delivery_service.exception.ErrorResponse error = com.example.delivery_service.exception.ErrorResponse.builder()
+        com.example.deliveryservice.exception.ErrorResponse error = com.example.deliveryservice.exception.ErrorResponse
+                .builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Business Error")
@@ -29,12 +34,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<com.example.delivery_service.exception.ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
         log.warn("Validation exception: {}", message);
-        com.example.delivery_service.exception.ErrorResponse error = com.example.delivery_service.exception.ErrorResponse.builder()
+        ErrorResponse error = ErrorResponse
+                .builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Validation Error")
@@ -45,9 +52,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<com.example.delivery_service.exception.ErrorResponse> handleGenericException(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
-        com.example.delivery_service.exception.ErrorResponse error = com.example.delivery_service.exception.ErrorResponse.builder()
+        ErrorResponse error = ErrorResponse
+                .builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error("Internal Server Error")

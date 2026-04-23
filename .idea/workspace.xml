@@ -4,18 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="fix(controllers): updated controllers to add /logistics in front of all endpoints">
+    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="fix(clients): modified feign clients to match new endpoint nomenclature and also updated the endpoint in the API Gateway">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/API_Gateway/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/API_Gateway/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/NotificationServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/NotificationServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/ParcelServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/ParcelServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/DeliveryServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/DeliveryServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/UserServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/UserServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/client/DeliveryServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/client/DeliveryServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/client/NotificationServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/client/NotificationServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/client/PaymentServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/client/PaymentServiceClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/client/ParcelServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/client/ParcelServiceClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/event/PaymentCompletedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/event/PaymentCompletedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/exception/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/exception/ErrorResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/event/ParcelCreatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/event/ParcelCreatedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/AuthResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/dto/AuthResponse.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -221,7 +216,7 @@
       <workItem from="1776859001827" duration="15707000" />
       <workItem from="1776889681370" duration="3347000" />
       <workItem from="1776915943599" duration="13000" />
-      <workItem from="1776927642304" duration="3619000" />
+      <workItem from="1776927642304" duration="7048000" />
     </task>
     <task id="LOCAL-00001" summary="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail">
       <option name="closed" value="true" />
@@ -271,7 +266,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776932156514</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="fix(clients): modified feign clients to match new endpoint nomenclature and also updated the endpoint in the API Gateway">
+      <option name="closed" value="true" />
+      <created>1776932974884</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1776932974884</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -298,7 +301,8 @@
     <MESSAGE value="git(merge) : merge with feature/dashboard-Actors" />
     <MESSAGE value="fix(): fixed issues when running the microservices" />
     <MESSAGE value="fix(controllers): updated controllers to add /logistics in front of all endpoints" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(controllers): updated controllers to add /logistics in front of all endpoints" />
+    <MESSAGE value="fix(clients): modified feign clients to match new endpoint nomenclature and also updated the endpoint in the API Gateway" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(clients): modified feign clients to match new endpoint nomenclature and also updated the endpoint in the API Gateway" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
