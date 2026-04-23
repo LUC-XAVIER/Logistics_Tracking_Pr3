@@ -10,6 +10,6 @@ import java.util.UUID;
 @FeignClient(name = "UserManagementService")
 public interface UserServiceClient {
 
-    @GetMapping("/api/v1/users/{userId}/contact")
+    @GetMapping("/logistics/api/v1/users/{userId}/contact")
     UserContactResponse getUserContact(@PathVariable("userId") UUID userId);
 }
