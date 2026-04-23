@@ -45,7 +45,7 @@ public class OsrmService {
 
         log.debug("Route calculated: {}km, {} segments", totalDistanceKm, segmentCount);
 
-        return new OsrmRouteResult(totalDistanceKm, segmentCount, checkpoints);
+        return new OsrmRouteResult(totalDistanceKm, segmentCount, fullPath, checkpoints);
     }
 
     private List<double[]> extractFullPath(JsonNode response) {
@@ -118,6 +118,7 @@ public class OsrmService {
     public record OsrmRouteResult(
             double totalDistanceKm,
             int segmentCount,
+            List<double[]> fullPath,
             List<double[]> checkpoints
     ) {}
 }
