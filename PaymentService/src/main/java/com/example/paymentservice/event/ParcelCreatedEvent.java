@@ -1,4 +1,4 @@
-package com.example.payment_service.event;
+package com.example.paymentservice.event;
 
 import lombok.*;
 

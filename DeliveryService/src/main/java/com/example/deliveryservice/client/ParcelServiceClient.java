@@ -14,13 +14,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-@FeignClient(name = "ParcelService", path = "/logistics/api/v1/agencies")
+@FeignClient(name = "ParcelService", path = "/logistics/api/v1")
 public interface ParcelServiceClient {
 
-  @GetMapping("/{agencyId}/coordinates")
+  @GetMapping("/agencies/{agencyId}/coordinates")
   AgencyCoordinatesResponse getAgencyCoordinates(@PathVariable("agencyId") UUID agencyId);
 
-  @GetMapping("/v1/parcels/available")
+  @GetMapping("/parcels/available")
   List<AvailableParcelResponse> getAvailableParcels(
     @RequestParam("sourceAgencyId") UUID sourceAgencyId,
     @RequestParam("destAgencyId") UUID destAgencyId
