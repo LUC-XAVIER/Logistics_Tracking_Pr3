@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "DeliveryService", path = "/api/v1/deliveries")
+@FeignClient(name = "DeliveryService", path = "/logistics/api/v1/deliveries")
 public interface DeliveryServiceClient {
 
     @PostMapping

@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "NotificationService", path = "/api/v1/notifications")
+@FeignClient(name = "NotificationService", path = "/logistics/api/v1/notifications")
 public interface NotificationServiceClient {
 
     @PostMapping("/events")
