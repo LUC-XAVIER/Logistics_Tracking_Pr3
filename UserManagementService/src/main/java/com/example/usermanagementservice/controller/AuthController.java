@@ -27,7 +27,7 @@ import java.util.Date;
 import java.util.Map;
 
 @RestController
-@RequestMapping("auth")
+@RequestMapping("logistics/auth")
 public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;

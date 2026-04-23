@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
-@RequestMapping("/api/v1/agencies")
+@RequestMapping("/logistics/api/v1/agencies")
 public class AgencyController {
 
     private final AgencyRepository agencyRepository;
