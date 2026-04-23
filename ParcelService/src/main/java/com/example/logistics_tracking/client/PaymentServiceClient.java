@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "PaymentService", path = "/api/v1/payments")
+@FeignClient(name = "PaymentService", path = "/logistics/api/v1/payments")
 public interface PaymentServiceClient {
 
     @PostMapping("/quote")

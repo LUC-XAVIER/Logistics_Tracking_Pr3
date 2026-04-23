@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-@FeignClient(name = "ParcelService", path = "/api/agencies")
+@FeignClient(name = "ParcelService", path = "/logistics/api/v1/agencies")
 public interface ParcelServiceClient {
 
   @GetMapping("/{agencyId}/coordinates")
