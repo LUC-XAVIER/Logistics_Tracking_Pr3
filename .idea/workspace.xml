@@ -4,12 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="git(merge) : merge with feature/dashboard-Actors">
+    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="fix(): fixed issues when running the microservices">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/OsrmService.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/OsrmService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +18,7 @@
     </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="247" />
+    <option name="cachedIndexableFilesCount" value="137" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -43,15 +39,12 @@
     &quot;assignee&quot;: &quot;LUC-XAVIER&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3.git",
-    "accountId": "9933f049-6ae4-4d0f-a518-d41996260824"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3&quot;,
+    &quot;accountId&quot;: &quot;5a118463-d01e-4334-94f5-4e975f53cfe9&quot;
   }
-}]]></component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="jar://$MAVEN_REPOSITORY$/jakarta/persistence/jakarta.persistence-api/3.2.0/jakarta.persistence-api-3.2.0-sources.jar!/jakarta/persistence/Column.java" root0="SKIP_INSPECTION" />
-  </component>
+}</component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -103,7 +96,7 @@
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/NotificationService/src/main/resources&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/frontend-logistic-tracking&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -215,8 +208,10 @@
       <workItem from="1776708343484" duration="11000" />
       <workItem from="1776756092003" duration="19902000" />
       <workItem from="1776778459891" duration="10624000" />
-      <workItem from="1776859001827" duration="14982000" />
-      <workItem from="1776917703536" duration="1172000" />
+      <workItem from="1776859001827" duration="15707000" />
+      <workItem from="1776889681370" duration="3347000" />
+      <workItem from="1776915943599" duration="13000" />
+      <workItem from="1776927642304" duration="2605000" />
     </task>
     <task id="LOCAL-00001" summary="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail">
       <option name="closed" value="true" />
@@ -250,11 +245,30 @@
       <option name="project" value="LOCAL" />
       <updated>1776863758527</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="fix(): fixed issues when running the microservices">
+      <option name="closed" value="true" />
+      <created>1776889168450</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1776889168450</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <ignored-roots>
@@ -264,7 +278,8 @@
     <MESSAGE value="Feat(payment service): worked on the implementation of payment service except the controller which still need to be updated" />
     <MESSAGE value="fix: small change" />
     <MESSAGE value="git(merge) : merge with feature/dashboard-Actors" />
-    <option name="LAST_COMMIT_MESSAGE" value="git(merge) : merge with feature/dashboard-Actors" />
+    <MESSAGE value="fix(): fixed issues when running the microservices" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(): fixed issues when running the microservices" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

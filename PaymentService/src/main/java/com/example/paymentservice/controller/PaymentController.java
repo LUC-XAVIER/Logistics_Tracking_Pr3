@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/logistics/api/v1/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
