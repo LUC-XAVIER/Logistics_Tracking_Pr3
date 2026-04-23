@@ -37,4 +37,5 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 firebase:
-  service-account-path:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account-logistic-tracking.json}
+  project-id: ${FIREBASE_PROJECT_ID:logistic-tracking-pr3}

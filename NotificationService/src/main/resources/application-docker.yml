@@ -45,4 +45,5 @@ eureka:
     prefer-ip-address: true
 
 firebase:
-  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH}
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH}
+  project-id: ${FIREBASE_PROJECT_ID}

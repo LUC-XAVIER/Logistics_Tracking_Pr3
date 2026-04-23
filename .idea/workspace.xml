@@ -5,8 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.prod.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/ci-cd.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/ci-cd.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/resources/application-docker.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/resources/application-docker.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.prod.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.prod.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,12 +46,12 @@
     &quot;assignee&quot;: &quot;LUC-XAVIER&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3.git",
-    "accountId": "2e7f465e-642b-42a6-9ed6-5933adeded98"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3.git&quot;,
+    &quot;accountId&quot;: &quot;2e7f465e-642b-42a6-9ed6-5933adeded98&quot;
   }
-}]]></component>
+}</component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -217,7 +223,9 @@
       <workItem from="1776708343484" duration="11000" />
       <workItem from="1776756092003" duration="19902000" />
       <workItem from="1776778459891" duration="10624000" />
-      <workItem from="1776935346472" duration="1218000" />
+      <workItem from="1776935346472" duration="2928000" />
+      <workItem from="1776942787677" duration="860000" />
+      <workItem from="1776951850352" duration="1223000" />
     </task>
     <servers />
   </component>

@@ -161,6 +161,7 @@ jobs:
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
             AWS_REGION=${{ secrets.AWS_REGION }}
             AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+            FIREBASE_PROJECT_ID=${{secrets.FIREBASE_PROJECT_ID}}
             EOF
 
             # ── 5. Pull latest images from ECR ───────────────────────
