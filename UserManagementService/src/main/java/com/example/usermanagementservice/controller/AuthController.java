@@ -17,7 +17,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -97,7 +97,7 @@ public class AuthController {
                     .email(request.getEmail())
                     .phoneNumber(request.getPhoneNumber())
                     .role(request.getRole())
-                    .password(new BCryptPasswordEncoder().encode(request.getPassword()))
+                    .password(NoOpPasswordEncoder.getInstance().encode(request.getPassword()))
                     .createdAt(new Date())
                     .updatedAt(new Date())
                     .isDeleted(false)
