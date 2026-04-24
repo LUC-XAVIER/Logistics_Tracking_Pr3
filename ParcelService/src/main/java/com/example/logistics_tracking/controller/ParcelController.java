@@ -1,129 +1,76 @@
 package com.example.logistics_tracking.controller;
 
-import com.example.logistics_tracking.dto.old.CreateParcelRequest;
-import com.example.logistics_tracking.dto.old.ParcelResponse;
-import com.example.logistics_tracking.dto.old.ParcelSummaryResponse;
-import com.example.logistics_tracking.dto.old.UpdateParcelStatusRequest;
-import com.example.logistics_tracking.entity.Parcel;
-import com.example.logistics_tracking.repository.ParcelRepository;
+import com.example.logistics_tracking.dto.ParcelQuoteRequest;
+import com.example.logistics_tracking.dto.ParcelQuoteResponse;
+import com.example.logistics_tracking.dto.ParcelRequest;
+import com.example.logistics_tracking.dto.ParcelResponse;
+import com.example.logistics_tracking.enums.ParcelStatus;
+import com.example.logistics_tracking.service.ParcelService;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/parcels")
+@RequestMapping("/logistics/api/v1/parcels")
+@RequiredArgsConstructor
 public class ParcelController {
 
-    private final ParcelRepository parcelRepository;
+    private final ParcelService parcelService;
 
-    public ParcelController(ParcelRepository parcelRepository) {
-        this.parcelRepository = parcelRepository;
+    @GetMapping
+    public ResponseEntity<List<ParcelResponse>> getAllParcels() {
+        return ResponseEntity.ok(parcelService.getAllParcels());
     }
 
     @PostMapping
-    public ResponseEntity<ParcelResponse> create(@Valid @RequestBody CreateParcelRequest request) {
-        Parcel parcel = parcelRepository.save(Parcel.builder()
-                .sourceAgencyId(String.valueOf(request.sourceAgencyId()))
-                .destinationAgencyId(request.destinationAgencyId())
-                .sourceAddress(request.sourceAddress())
-                .destinationAddress(request.destinationAddress())
-                .sourceLatitude(request.sourceLatitude())
-                .sourceLongitude(request.sourceLongitude())
-                .destinationLatitude(request.destinationLatitude())
-                .destinationLongitude(request.destinationLongitude())
-                .weightKg(request.weightKg())
-                .fragilityLevel(request.fragilityLevel())
-                .estimatedDeliveryTime(request.estimatedDeliveryTime())
-                .routeSegments(request.routeSegments())
-                .build());
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(parcel));
-    }
-
-    @GetMapping
-    public List<ParcelResponse> list() {
-        return parcelRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
+    public ResponseEntity<ParcelResponse> createParcel(@Valid @RequestBody ParcelRequest request) {
+        ParcelResponse response = parcelService.createParcel(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/{parcelId}")
-    public ResponseEntity<ParcelResponse> get(@PathVariable UUID parcelId) {
-        return parcelRepository.findById(parcelId)
-                .map(this::toResponse)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ParcelResponse> getParcel(@PathVariable String parcelId) {
+        ParcelResponse response = parcelService.getParcelById(parcelId);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{parcelId}/summary")
-    public ResponseEntity<ParcelSummaryResponse> getSummary(@PathVariable UUID parcelId) {
-        return parcelRepository.findById(parcelId)
-                .map(this::toSummary)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ParcelResponse>> getUserParcels(@PathVariable String userId) {
+        List<ParcelResponse> parcels = parcelService.getParcelsByUserId(userId);
+        return ResponseEntity.ok(parcels);
     }
 
-    @PatchMapping("/{parcelId}/status")
-    public ResponseEntity<ParcelResponse> updateStatus(
-            @PathVariable UUID parcelId,
-            @Valid @RequestBody UpdateParcelStatusRequest request
-    ) {
-        return parcelRepository.findById(parcelId)
-                .map(parcel -> {
-                    parcel.setStatus(request.status());
-                    if (request.paymentId() != null) {
-                        parcel.setPaymentId(request.paymentId());
-                    }
-                    if (request.deliveryId() != null) {
-                        parcel.setDeliveryId(request.deliveryId());
-                    }
-                    return ResponseEntity.ok(toResponse(parcelRepository.save(parcel)));
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<ParcelResponse>> getParcelsByStatus(@PathVariable ParcelStatus status) {
+        List<ParcelResponse> parcels = parcelService.getParcelsByStatus(status);
+        return ResponseEntity.ok(parcels);
     }
 
-    private ParcelResponse toResponse(Parcel parcel) {
-        return new ParcelResponse(
-                parcel.getId(),
-                parcel.getSourceAgencyId(),
-                parcel.getDestinationAgencyId(),
-                parcel.getSourceAddress(),
-                parcel.getDestinationAddress(),
-                parcel.getSourceLatitude(),
-                parcel.getSourceLongitude(),
-                parcel.getDestinationLatitude(),
-                parcel.getDestinationLongitude(),
-                parcel.getWeightKg(),
-                parcel.getFragilityLevel(),
-                parcel.getStatus(),
-                parcel.getEstimatedDeliveryTime(),
-                parcel.getRouteSegments(),
-                parcel.getPaymentId(),
-                parcel.getDeliveryId(),
-                parcel.getCreatedAt(),
-                parcel.getUpdatedAt()
-        );
+    @GetMapping("/{parcelId}/owner")
+    public ResponseEntity<UUID> getParcelOwner(@PathVariable String parcelId) {
+        UUID ownerId = parcelService.getParcelOwner(parcelId);
+        return ResponseEntity.ok(ownerId);
     }
+  @GetMapping("/available")
+  public ResponseEntity<List<ParcelResponse>> getAvailableParcels(
+    @RequestParam UUID sourceAgencyId,
+    @RequestParam UUID destAgencyId) {
+    List<ParcelResponse> parcels = parcelService.getAvailableParcels(sourceAgencyId, destAgencyId);
+    return ResponseEntity.ok(parcels);
+  }
 
-    private ParcelSummaryResponse toSummary(Parcel parcel) {
-        return new ParcelSummaryResponse(
-                parcel.getId(),
-                parcel.getWeightKg(),
-                parcel.getFragilityLevel(),
-                parcel.getStatus(),
-                parcel.getSourceLatitude(),
-                parcel.getSourceLongitude(),
-                parcel.getDestinationLatitude(),
-                parcel.getDestinationLongitude(),
-                parcel.getEstimatedDeliveryTime()
-        );
-    }
+  @PostMapping("/quote")
+  public ResponseEntity<ParcelQuoteResponse> getQuote(@Valid @RequestBody ParcelQuoteRequest request) {
+    return ResponseEntity.ok(parcelService.getQuote(request));
+  }
+
+  @PostMapping("/{parcelId}/cancel")
+  public ResponseEntity<Void> cancelParcel(@PathVariable String parcelId) {
+      parcelService.cancelParcel(parcelId);
+      return ResponseEntity.ok().build();
+  }
 }

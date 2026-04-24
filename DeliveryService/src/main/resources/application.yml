@@ -2,18 +2,19 @@ spring:
   application:
     name: DeliveryService
   datasource:
-    url: jdbc:mysql://localhost:3306/logistics_db
+    url: jdbc:mysql://localhost:3307/logistics_db
     username: root
-    password: root
+    password: weber12?
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
   kafka:
     bootstrap-servers: localhost:9092
 server:
@@ -22,3 +23,9 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    com.example.delivery_service: DEBUG
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: DEBUG

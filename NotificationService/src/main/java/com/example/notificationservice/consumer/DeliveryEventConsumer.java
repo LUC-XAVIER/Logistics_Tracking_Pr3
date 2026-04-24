@@ -1,15 +1,16 @@
 package com.example.notificationservice.consumer;
 
-import com.example.notificationservice.dto.DeliveryEventPayload;
-import com.example.notificationservice.entity.NotificationMilestone;
+import com.example.notificationservice.client.ParcelServiceClient;
 import com.example.notificationservice.enums.NotificationEventType;
-import com.example.notificationservice.repository.NotificationMilestoneRepository;
 import com.example.notificationservice.service.NotificationDispatchService;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -17,84 +18,85 @@ import org.springframework.stereotype.Component;
 public class DeliveryEventConsumer {
 
     private final NotificationDispatchService dispatchService;
-    private final NotificationMilestoneRepository milestoneRepository;
+    private final ParcelServiceClient parcelOwnerClient;
 
-    private static final Set<Integer> MILESTONES = Set.of(25, 50, 75);
+    @KafkaListener(topics = "parcel-events", groupId = "notification-service-group")
+    public void onDeliveryEvent(Object payload) {
+        try {
+            if (!(payload instanceof Map)) return;
 
-    @KafkaListener(topics = "delivery.started", groupId = "notification-service-group")
-    public void onDeliveryStarted(DeliveryEventPayload payload) {
-        dispatchService.dispatch(
-                payload.getUserId(), payload.getParcelId(),
-                "Delivery Started",
-                "Your parcel is on its way!",
-                NotificationEventType.DELIVERY_STARTED,
-                payload.getRecipientEmail(), payload.getRecipientPhone()
-        );
-    }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> event = (Map<String, Object>) payload;
+            String eventType = (String) event.get("eventType");
+            if (eventType == null) return;
 
-    @KafkaListener(topics = "delivery.progress", groupId = "notification-service-group")
-    public void onDeliveryProgress(DeliveryEventPayload payload) {
-        Integer progress = payload.getProgressPercent();
-        if (progress == null || !MILESTONES.contains(progress)) return;
+            switch (eventType) {
+                case "SegmentReached" -> handleSegmentReached(event);
+                case "TripCompleted" -> handleTripCompleted(event);
+                default -> log.debug("DeliveryEventConsumer ignored eventType={}", eventType);
+            }
 
-        boolean alreadyNotified = milestoneRepository
-                .existsByParcelIdAndMilestone(payload.getParcelId(), progress);
-        if (alreadyNotified) {
-            log.info("Milestone {}% already notified for parcelId={}", progress, payload.getParcelId());
-            return;
+        } catch (Exception e) {
+            log.error("Error processing delivery event: {}", e.getMessage(), e);
         }
-
-        String body = switch (progress) {
-            case 25 -> "Your parcel is 25% of the way to its destination.";
-            case 50 -> "Your parcel is halfway there!";
-            case 75 -> "Your parcel is almost at its destination.";
-            default -> "Delivery in progress.";
-        };
-
-        dispatchService.dispatch(
-                payload.getUserId(), payload.getParcelId(),
-                "Delivery Update",
-                body,
-                NotificationEventType.DELIVERY_PROGRESS,
-                payload.getRecipientEmail(), payload.getRecipientPhone()
-        );
-
-        milestoneRepository.save(NotificationMilestone.builder()
-                .parcelId(payload.getParcelId())
-                .milestone(progress)
-                .build());
     }
 
-    @KafkaListener(topics = "delivery.completed", groupId = "notification-service-group")
-    public void onDeliveryCompleted(DeliveryEventPayload payload) {
-        dispatchService.dispatch(
-                payload.getUserId(), payload.getParcelId(),
-                "Parcel Delivered",
-                "Your parcel has been delivered successfully. Thank you!",
-                NotificationEventType.DELIVERY_COMPLETED,
-                payload.getRecipientEmail(), payload.getRecipientPhone()
+    private void handleSegmentReached(Map<String, Object> event) {
+        Integer segmentOrder = (Integer) event.get("segmentOrder");
+        Integer totalSegments = (Integer) event.get("totalSegments");
+        Double distanceTraveled = extractDouble(event, "distanceTraveledKm");
+        Double distanceRemaining = extractDouble(event, "distanceRemainingKm");
+
+        @SuppressWarnings("unchecked")
+        List<String> parcelIds = (List<String>) event.get("parcelIds");
+        if (parcelIds == null || parcelIds.isEmpty()) return;
+
+        String message = String.format(
+                "Checkpoint %d/%d reached. Distance traveled: %.1f km, remaining: %.1f km.",
+                segmentOrder, totalSegments, distanceTraveled, distanceRemaining
         );
+
+        for (String parcelId : parcelIds) {
+            notifyParcelOwner(parcelId, "Delivery Update", message,
+                    NotificationEventType.DELIVERY_PROGRESS);
+        }
     }
 
-    @KafkaListener(topics = "delivery.failed", groupId = "notification-service-group")
-    public void onDeliveryFailed(DeliveryEventPayload payload) {
-        dispatchService.dispatch(
-                payload.getUserId(), payload.getParcelId(),
-                "Delivery Issue",
-                "We encountered an issue delivering your parcel. Our team is on it.",
-                NotificationEventType.DELIVERY_FAILED,
-                payload.getRecipientEmail(), payload.getRecipientPhone()
-        );
+    private void handleTripCompleted(Map<String, Object> event) {
+        @SuppressWarnings("unchecked")
+        List<String> parcelIds = (List<String>) event.get("parcelIds");
+        if (parcelIds == null || parcelIds.isEmpty()) return;
+
+        for (String parcelId : parcelIds) {
+            notifyParcelOwner(parcelId, "Parcel Delivered",
+                    "Your parcel has been delivered successfully. Thank you!",
+                    NotificationEventType.DELIVERY_COMPLETED);
+        }
     }
 
-    @KafkaListener(topics = "delivery.rescheduled", groupId = "notification-service-group")
-    public void onDeliveryRescheduled(DeliveryEventPayload payload) {
-        dispatchService.dispatch(
-                payload.getUserId(), payload.getParcelId(),
-                "Delivery Rescheduled",
-                "Your delivery has been rescheduled. New ETA: " + payload.getNewEta(),
-                NotificationEventType.DELIVERY_RESCHEDULED,
-                payload.getRecipientEmail(), payload.getRecipientPhone()
-        );
+    private void notifyParcelOwner(String parcelId, String title,
+                                   String message, NotificationEventType eventType) {
+        try {
+            UUID userId = parcelOwnerClient.getParcelOwner(parcelId);
+            if (userId == null) {
+                log.warn("Could not resolve owner for parcelId={}", parcelId);
+                return;
+            }
+            dispatchService.dispatch(userId, UUID.fromString(parcelId),
+                    title, message, eventType);
+        } catch (Exception e) {
+            log.error("Failed to notify owner for parcelId={}: {}", parcelId, e.getMessage());
+        }
+    }
+
+    private Double extractDouble(Map<String, Object> event, String key) {
+        Object val = event.get(key);
+        if (val == null) return 0.0;
+        if (val instanceof Double d) return d;
+        if (val instanceof Integer i) return i.doubleValue();
+        if (val instanceof String s) {
+            try { return Double.parseDouble(s); } catch (NumberFormatException ignored) {}
+        }
+        return 0.0;
     }
 }

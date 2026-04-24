@@ -7,12 +7,13 @@ import com.example.notificationservice.enums.NotificationChannel;
 import com.example.notificationservice.enums.NotificationEventType;
 import com.example.notificationservice.enums.NotificationStatus;
 import com.example.notificationservice.repository.NotificationRepository;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

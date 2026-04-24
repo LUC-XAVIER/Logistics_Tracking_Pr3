@@ -1,0 +1,338 @@
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <annotationProcessing>\r\n      <profile default=\"true\" name=\"Default\" enabled=\"true\" />\r\n      <profile name=\"Maven default annotation processors profile\" enabled=\"true\">\r\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\r\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\r\n        <outputRelativeToContentRoot value=\"true\" />\r\n        <module name=\"Logistics_Tracking\" />\r\n        <module name=\"NotificationService\" />\r\n        <module name=\"ServiceRegistry\" />\r\n        <module name=\"DeliveryService\" />\r\n        <module name=\"API_Gateway\" />\r\n        <module name=\"PaymentService\" />\r\n      </profile>\r\n    </annotationProcessing>\r\n  </component>\r\n  <component name=\"JavacSettings\">\r\n    <option name=\"ADDITIONAL_OPTIONS_OVERRIDE\">\r\n      <module name=\"API_Gateway\" options=\"-parameters\" />\r\n      <module name=\"DeliveryService\" options=\"-parameters\" />\r\n      <module name=\"Logistics_Tracking\" options=\"-parameters\" />\r\n      <module name=\"NotificationService\" options=\"-parameters\" />\r\n      <module name=\"PaymentService\" options=\"-parameters\" />\r\n      <module name=\"ServiceRegistry\" options=\"-parameters\" />\r\n    </option>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+--- a/.idea/compiler.xml	(revision 9e10632d39749c0750bce3b1636f00b834f0887d)
++++ b/.idea/compiler.xml	(date 1776837374987)
+@@ -7,14 +7,17 @@
+         <sourceOutputDir name="target/generated-sources/annotations" />
+         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+         <outputRelativeToContentRoot value="true" />
++        <module name="DeliveryService" />
++        <module name="API_Gateway" />
+         <module name="Logistics_Tracking" />
+         <module name="NotificationService" />
+         <module name="ServiceRegistry" />
+-        <module name="DeliveryService" />
+-        <module name="API_Gateway" />
+         <module name="PaymentService" />
+       </profile>
+     </annotationProcessing>
++    <bytecodeTargetLevel>
++      <module name="UserManagementService" target="21" />
++    </bytecodeTargetLevel>
+   </component>
+   <component name="JavacSettings">
+     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+@@ -24,6 +27,7 @@
+       <module name="NotificationService" options="-parameters" />
+       <module name="PaymentService" options="-parameters" />
+       <module name="ServiceRegistry" options="-parameters" />
++      <module name="UserManagementService" options="-parameters" />
+     </option>
+   </component>
+ </project>
+\ No newline at end of file
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"ce47166a-8462-4f86-ae5a-a6b6309087cb\" name=\"Changes\" comment=\"Feat(delivery service): implemented the delivery service\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"EmbeddingIndexingInfo\">\r\n    <option name=\"cachedIndexableFilesCount\" value=\"137\" />\r\n    <option name=\"fileBasedEmbeddingIndicesEnabled\" value=\"true\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Interface\" />\r\n        <option value=\"Exception\" />\r\n        <option value=\"Class\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;fotsing12&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\">{\r\n  &quot;selectedUrlAndAccountId&quot;: {\r\n    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3&quot;,\r\n    &quot;accountId&quot;: &quot;5a118463-d01e-4334-94f5-4e975f53cfe9&quot;\r\n  }\r\n}</component>\r\n  <component name=\"KubernetesApiPersistence\">{}</component>\r\n  <component name=\"KubernetesApiProvider\">{\r\n  &quot;isMigrated&quot;: true\r\n}</component>\r\n  <component name=\"MavenImportPreferences\">\r\n    <option name=\"generalSettings\">\r\n      <MavenGeneralSettings>\r\n        <option name=\"mavenHomeTypeForPersistence\" value=\"WRAPPER\" />\r\n      </MavenGeneralSettings>\r\n    </option>\r\n  </component>\r\n  <component name=\"McpProjectServerCommands\">\r\n    <commands />\r\n    <urls />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 3\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"3Bcdgc9R53AlXWipM3g6eirXXDh\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;Maven.API_Gateway [compile].executor&quot;: &quot;Run&quot;,\r\n    &quot;Maven.ServiceRegistry [deploy].executor&quot;: &quot;Run&quot;,\r\n    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,\r\n    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,\r\n    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,\r\n    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,\r\n    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,\r\n    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,\r\n    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,\r\n    &quot;Spring Boot.ApiGatewayApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.DeliveryServiceApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.LogisticsTrackingApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.NotificationServiceApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.PaymentServiceApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.ServiceRegistryApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,\r\n    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,\r\n    &quot;git-widget-placeholder&quot;: &quot;feature/notifications-kafka&quot;,\r\n    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,\r\n    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,\r\n    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,\r\n    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/ParcelService/src/main/java/com/example/logistics_tracking/exception&quot;,\r\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,\r\n    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,\r\n    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,\r\n    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,\r\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\r\n  }\r\n}</component>\r\n  <component name=\"RecentsManager\">\r\n    <key name=\"CopyFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\USER\\Documents\\Tutored Projects\\Logistics_Tracking_Pr3\\ParcelService\\src\\main\\java\\com\\example\\logistics_tracking\\exception\" />\r\n      <recent name=\"C:\\Users\\USER\\Documents\\Tutored Projects\\Logistics_Tracking_Pr3\\NotificationService\\src\\main\\resources\" />\r\n    </key>\r\n  </component>\r\n  <component name=\"RunDashboard\">\r\n    <option name=\"configurationTypes\">\r\n      <set>\r\n        <option value=\"KtorApplicationConfigurationType\" />\r\n        <option value=\"MicronautRunConfigurationType\" />\r\n        <option value=\"QuarkusRunConfigurationType\" />\r\n        <option value=\"SpringBootApplicationConfigurationType\" />\r\n      </set>\r\n    </option>\r\n  </component>\r\n  <component name=\"RunManager\" selected=\"Spring Boot.DeliveryServiceApplication\">\r\n    <configuration name=\"ApiGatewayApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"API_Gateway\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.api_gateway.ApiGatewayApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"DeliveryServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"DeliveryService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.deliveryservice.DeliveryServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"LogisticsTrackingApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"Logistics_Tracking\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.logistics_tracking.LogisticsTrackingApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"NotificationServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"NotificationService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.notificationservice.NotificationServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"PaymentServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"PaymentService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.paymentservice.PaymentServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"ServiceRegistryApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"ServiceRegistry\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.serviceregistry.ServiceRegistryApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189\" />\r\n        <option value=\"bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"StructureViewState\">\r\n    <option name=\"selectedTab\" value=\"Logical\" />\r\n  </component>\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"ce47166a-8462-4f86-ae5a-a6b6309087cb\" name=\"Changes\" comment=\"\" />\r\n      <created>1774792545645</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1774792545645</updated>\r\n      <workItem from=\"1774792546984\" duration=\"3120000\" />\r\n      <workItem from=\"1774801379761\" duration=\"503000\" />\r\n      <workItem from=\"1774801892859\" duration=\"462000\" />\r\n      <workItem from=\"1775297390944\" duration=\"5836000\" />\r\n      <workItem from=\"1775319690476\" duration=\"708000\" />\r\n      <workItem from=\"1775383111853\" duration=\"68000\" />\r\n      <workItem from=\"1775457541587\" duration=\"41377000\" />\r\n      <workItem from=\"1776508010141\" duration=\"1517000\" />\r\n      <workItem from=\"1776756285640\" duration=\"23482000\" />\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"Feat: implemented push notifications and notification functionality and started configuring kafka\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1775641891085</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1775641891085</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"Feat(Kafka): started implementing kafka configurations\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1775653397676</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1775653397676</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"Feat(Kafka): started implementing kafka configurations\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1775655703232</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1775655703232</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1775746688223</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1775746688223</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00005\" summary=\"Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776772810117</created>\r\n      <option name=\"number\" value=\"00005\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776772810117</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00006\" summary=\"Feat(parcel service): updated parcel service with new changes matching the delivery service\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776789225154</created>\r\n      <option name=\"number\" value=\"00006\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00006\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776789225154</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00007\" summary=\"Feat(delivery service): implemented the delivery service\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776815342182</created>\r\n      <option name=\"number\" value=\"00007\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00007\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776815342182</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"8\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <ignored-roots>\r\n      <path value=\"$PROJECT_DIR$/..\" />\r\n    </ignored-roots>\r\n    <MESSAGE value=\"Feat: implemented push notifications and notification functionality and started configuring kafka\" />\r\n    <MESSAGE value=\"Feat(Kafka): started implementing kafka configurations\" />\r\n    <MESSAGE value=\"Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events\" />\r\n    <MESSAGE value=\"Feat(parcel service): updated parcel service with new changes matching the delivery service\" />\r\n    <MESSAGE value=\"Feat(delivery service): implemented the delivery service\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"Feat(delivery service): implemented the delivery service\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 9e10632d39749c0750bce3b1636f00b834f0887d)
++++ b/.idea/workspace.xml	(date 1776837374992)
+@@ -4,13 +4,20 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="Feat(delivery service): implemented the delivery service">
++    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="">
++      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+     <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="CopilotPersistence">
++    <persistenceIdMap>
++      <entry key="_C:/Users/fonin/IdeaProjects/Logistics_Tracking_Pr3" value="3Bcdgc9R53AlXWipM3g6eirXXDh" />
++    </persistenceIdMap>
+   </component>
+   <component name="EmbeddingIndexingInfo">
+     <option name="cachedIndexableFilesCount" value="137" />
+@@ -19,8 +26,8 @@
+   <component name="FileTemplateManagerImpl">
+     <option name="RECENT_TEMPLATES">
+       <list>
++        <option value="Enum" />
+         <option value="Interface" />
+-        <option value="Exception" />
+         <option value="Class" />
+       </list>
+     </option>
+@@ -31,13 +38,13 @@
+   <component name="GitHubPullRequestSearchHistory">{
+   &quot;lastFilter&quot;: {
+     &quot;state&quot;: &quot;OPEN&quot;,
+-    &quot;assignee&quot;: &quot;fotsing12&quot;
++    &quot;assignee&quot;: &quot;LUC-XAVIER&quot;
+   }
+ }</component>
+   <component name="GithubPullRequestsUISettings">{
+   &quot;selectedUrlAndAccountId&quot;: {
+-    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3&quot;,
+-    &quot;accountId&quot;: &quot;5a118463-d01e-4334-94f5-4e975f53cfe9&quot;
++    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3.git&quot;,
++    &quot;accountId&quot;: &quot;e806b82a-6d4c-4690-a04a-cc66e4d8103e&quot;
+   }
+ }</component>
+   <component name="KubernetesApiPersistence">{}</component>
+@@ -63,48 +70,52 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent">{
+-  &quot;keyToString&quot;: {
+-    &quot;Maven.API_Gateway [compile].executor&quot;: &quot;Run&quot;,
+-    &quot;Maven.ServiceRegistry [deploy].executor&quot;: &quot;Run&quot;,
+-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+-    &quot;Spring Boot.ApiGatewayApplication.executor&quot;: &quot;Run&quot;,
+-    &quot;Spring Boot.DeliveryServiceApplication.executor&quot;: &quot;Run&quot;,
+-    &quot;Spring Boot.LogisticsTrackingApplication.executor&quot;: &quot;Run&quot;,
+-    &quot;Spring Boot.NotificationServiceApplication.executor&quot;: &quot;Run&quot;,
+-    &quot;Spring Boot.PaymentServiceApplication.executor&quot;: &quot;Run&quot;,
+-    &quot;Spring Boot.ServiceRegistryApplication.executor&quot;: &quot;Run&quot;,
+-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+-    &quot;git-widget-placeholder&quot;: &quot;feature/notifications-kafka&quot;,
+-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+-    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/ParcelService/src/main/java/com/example/logistics_tracking/exception&quot;,
+-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
+-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "Application.BCryptTest.executor": "Run",
++    "Maven.API_Gateway [compile].executor": "Run",
++    "ModuleVcsDetector.initialDetectionPerformed": "true",
++    "RequestMappingsPanelOrder0": "0",
++    "RequestMappingsPanelOrder1": "1",
++    "RequestMappingsPanelWidth0": "75",
++    "RequestMappingsPanelWidth1": "75",
++    "RunOnceActivity.MCP Project settings loaded": "true",
++    "RunOnceActivity.ShowReadmeOnStart": "true",
++    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
++    "RunOnceActivity.git.unshallow": "true",
++    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
++    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
++    "Spring Boot.ApiGatewayApplication.executor": "Run",
++    "Spring Boot.DeliveryServiceApplication.executor": "Run",
++    "Spring Boot.LogisticsTrackingApplication.executor": "Run",
++    "Spring Boot.NotificationServiceApplication.executor": "Run",
++    "Spring Boot.PaymentServiceApplication.executor": "Run",
++    "Spring Boot.ServiceRegistryApplication.executor": "Run",
++    "Spring Boot.UserManagementServiceApplication.executor": "Run",
++    "codeWithMe.voiceChat.enabledByDefault": "false",
++    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
++    "git-widget-placeholder": "feature/notifications-kafka",
++    "ignore.virus.scanning.warn.message": "true",
++    "junie.onboarding.icon.badge.shown": "true",
++    "kotlin-language-version-configured": "true",
++    "node.js.detected.package.eslint": "true",
++    "node.js.detected.package.tslint": "true",
++    "node.js.selected.package.eslint": "(autodetect)",
++    "node.js.selected.package.tslint": "(autodetect)",
++    "nodejs_package_manager_path": "npm",
++    "run.configurations.included.in.services": "true",
++    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
++    "to.speed.mode.migration.done": "true",
++    "vue.rearranger.settings.migration": "true"
++  },
++  "keyToStringList": {
++    "DatabaseDriversLRU": [
++      "mysql"
++    ]
+   }
+-}</component>
++}]]></component>
+   <component name="RecentsManager">
+     <key name="CopyFile.RECENT_KEYS">
+-      <recent name="C:\Users\USER\Documents\Tutored Projects\Logistics_Tracking_Pr3\ParcelService\src\main\java\com\example\logistics_tracking\exception" />
+       <recent name="C:\Users\USER\Documents\Tutored Projects\Logistics_Tracking_Pr3\NotificationService\src\main\resources" />
+     </key>
+   </component>
+@@ -118,7 +129,7 @@
+       </set>
+     </option>
+   </component>
+-  <component name="RunManager" selected="Spring Boot.DeliveryServiceApplication">
++  <component name="RunManager" selected="Spring Boot.UserManagementServiceApplication">
+     <configuration name="ApiGatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+       <module name="API_Gateway" />
+       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.api_gateway.ApiGatewayApplication" />
+@@ -157,6 +168,13 @@
+     <configuration name="ServiceRegistryApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+       <module name="ServiceRegistry" />
+       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.serviceregistry.ServiceRegistryApplication" />
++      <method v="2">
++        <option name="Make" enabled="true" />
++      </method>
++    </configuration>
++    <configuration name="UserManagementServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
++      <module name="UserManagementService" />
++      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.usermanagementservice.UserManagementServiceApplication" />
+       <method v="2">
+         <option name="Make" enabled="true" />
+       </method>
+@@ -187,92 +205,27 @@
+       <workItem from="1775297390944" duration="5836000" />
+       <workItem from="1775319690476" duration="708000" />
+       <workItem from="1775383111853" duration="68000" />
+-      <workItem from="1775457541587" duration="41377000" />
+-      <workItem from="1776508010141" duration="1517000" />
+-      <workItem from="1776756285640" duration="23482000" />
+-    </task>
+-    <task id="LOCAL-00001" summary="Feat: implemented push notifications and notification functionality and started configuring kafka">
+-      <option name="closed" value="true" />
+-      <created>1775641891085</created>
+-      <option name="number" value="00001" />
+-      <option name="presentableId" value="LOCAL-00001" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1775641891085</updated>
+-    </task>
+-    <task id="LOCAL-00002" summary="Feat(Kafka): started implementing kafka configurations">
+-      <option name="closed" value="true" />
+-      <created>1775653397676</created>
+-      <option name="number" value="00002" />
+-      <option name="presentableId" value="LOCAL-00002" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1775653397676</updated>
+-    </task>
+-    <task id="LOCAL-00003" summary="Feat(Kafka): started implementing kafka configurations">
+-      <option name="closed" value="true" />
+-      <created>1775655703232</created>
+-      <option name="number" value="00003" />
+-      <option name="presentableId" value="LOCAL-00003" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1775655703232</updated>
+-    </task>
+-    <task id="LOCAL-00004" summary="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events">
+-      <option name="closed" value="true" />
+-      <created>1775746688223</created>
+-      <option name="number" value="00004" />
+-      <option name="presentableId" value="LOCAL-00004" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1775746688223</updated>
+-    </task>
+-    <task id="LOCAL-00005" summary="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events">
+-      <option name="closed" value="true" />
+-      <created>1776772810117</created>
+-      <option name="number" value="00005" />
+-      <option name="presentableId" value="LOCAL-00005" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1776772810117</updated>
+-    </task>
+-    <task id="LOCAL-00006" summary="Feat(parcel service): updated parcel service with new changes matching the delivery service">
+-      <option name="closed" value="true" />
+-      <created>1776789225154</created>
+-      <option name="number" value="00006" />
+-      <option name="presentableId" value="LOCAL-00006" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1776789225154</updated>
+-    </task>
+-    <task id="LOCAL-00007" summary="Feat(delivery service): implemented the delivery service">
+-      <option name="closed" value="true" />
+-      <created>1776815342182</created>
+-      <option name="number" value="00007" />
+-      <option name="presentableId" value="LOCAL-00007" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1776815342182</updated>
++      <workItem from="1776509231772" duration="361000" />
++      <workItem from="1776708343484" duration="11000" />
++      <workItem from="1776756092003" duration="19902000" />
++      <workItem from="1776778459891" duration="10624000" />
+     </task>
+-    <option name="localTasksCounter" value="8" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+     <option name="version" value="3" />
+-  </component>
+-  <component name="Vcs.Log.Tabs.Properties">
+-    <option name="TAB_STATES">
+-      <map>
+-        <entry key="MAIN">
+-          <value>
+-            <State />
+-          </value>
+-        </entry>
+-      </map>
+-    </option>
+   </component>
+   <component name="VcsManagerConfiguration">
+     <ignored-roots>
+       <path value="$PROJECT_DIR$/.." />
+     </ignored-roots>
+-    <MESSAGE value="Feat: implemented push notifications and notification functionality and started configuring kafka" />
+-    <MESSAGE value="Feat(Kafka): started implementing kafka configurations" />
+-    <MESSAGE value="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events" />
+-    <MESSAGE value="Feat(parcel service): updated parcel service with new changes matching the delivery service" />
+-    <MESSAGE value="Feat(delivery service): implemented the delivery service" />
+-    <option name="LAST_COMMIT_MESSAGE" value="Feat(delivery service): implemented the delivery service" />
++  </component>
++  <component name="github-copilot-workspace">
++    <instructionFileLocations>
++      <option value=".github/instructions" />
++    </instructionFileLocations>
++    <promptFileLocations>
++      <option value=".github/prompts" />
++    </promptFileLocations>
+   </component>
+ </project>
+\ No newline at end of file
+Index: .idea/encodings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"Encoding\">\r\n    <file url=\"file://$PROJECT_DIR$/API_Gateway/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/DeliveryService/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/NotificationService/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/ParcelService/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/PaymentService/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/ServiceRegistry/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/src/main/java\" charset=\"UTF-8\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/encodings.xml b/.idea/encodings.xml
+--- a/.idea/encodings.xml	(revision 9e10632d39749c0750bce3b1636f00b834f0887d)
++++ b/.idea/encodings.xml	(date 1776837374989)
+@@ -7,6 +7,7 @@
+     <file url="file://$PROJECT_DIR$/ParcelService/src/main/java" charset="UTF-8" />
+     <file url="file://$PROJECT_DIR$/PaymentService/src/main/java" charset="UTF-8" />
+     <file url="file://$PROJECT_DIR$/ServiceRegistry/src/main/java" charset="UTF-8" />
++    <file url="file://$PROJECT_DIR$/UserManagementService/src/main/java" charset="UTF-8" />
+     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+   </component>
+ </project>
+\ No newline at end of file

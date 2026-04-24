@@ -1,16 +1,20 @@
+
 package com.example.notificationservice.dto;
 
-import java.util.UUID;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
 
 @Data
 public class PaymentEventPayload {
     private UUID paymentId;
+    private String eventType;
+    private String eventId;
     private UUID parcelId;
     private UUID userId;
-    private String recipientEmail;
-    private String recipientPhone;
-    private Double amount;
-    private String currency;
-    private String eventType;
+    private BigDecimal amount;
+    private String transactionId;
+    private Instant timestamp;
 }

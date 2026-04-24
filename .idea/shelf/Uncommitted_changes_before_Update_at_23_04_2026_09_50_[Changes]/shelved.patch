@@ -1,0 +1,199 @@
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"ce47166a-8462-4f86-ae5a-a6b6309087cb\" name=\"Changes\" comment=\"git(merge) : merge with feature/dashboard-Actors\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/ParcelServiceClient.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/ParcelServiceClient.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/DeliveryService/src/main/resources/application.yml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/DeliveryService/src/main/resources/application.yml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelOwnerClient.java\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelServiceClient.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelServiceClient.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/UserServiceClient.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/UserServiceClient.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/config/FirebaseConfig.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/config/FirebaseConfig.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/DeliveryEventConsumer.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/DeliveryEventConsumer.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/NotificationService/src/main/resources/application.yml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/NotificationService/src/main/resources/application.yml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/ErrorResponse.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/ErrorResponse.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/GlobalExceptionHandler.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/GlobalExceptionHandler.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/repository/ParcelRepository.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/repository/ParcelRepository.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/ParcelService/src/main/resources/application.yml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/ParcelService/src/main/resources/application.yml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaConsumerConfig.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaConsumerConfig.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaProducerConfig.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaProducerConfig.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/controller/PaymentController.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/controller/PaymentController.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/CreatePaymentRequest.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/CreatePaymentRequest.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/ParcelSummaryResponse.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/ParcelSummaryResponse.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentQuoteRequest.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentQuoteRequest.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentQuoteResponse.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentQuoteResponse.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/GlobalExceptionHandler.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/GlobalExceptionHandler.java\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/UserManagementService/src/main/resources/application.yml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/UserManagementService/src/main/resources/application.yml\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"CopilotPersistence\">\r\n    <persistenceIdMap>\r\n      <entry key=\"_C:/Users/fonin/IdeaProjects/Logistics_Tracking_Pr3\" value=\"3Bcdgc9R53AlXWipM3g6eirXXDh\" />\r\n    </persistenceIdMap>\r\n  </component>\r\n  <component name=\"EmbeddingIndexingInfo\">\r\n    <option name=\"cachedIndexableFilesCount\" value=\"137\" />\r\n    <option name=\"fileBasedEmbeddingIndicesEnabled\" value=\"true\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Enum\" />\r\n        <option value=\"Interface\" />\r\n        <option value=\"Class\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;LUC-XAVIER&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\"><![CDATA[{\r\n  \"selectedUrlAndAccountId\": {\r\n    \"url\": \"https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3\",\r\n    \"accountId\": \"5a118463-d01e-4334-94f5-4e975f53cfe9\"\r\n  }\r\n}]]></component>\r\n  <component name=\"KubernetesApiPersistence\">{}</component>\r\n  <component name=\"KubernetesApiProvider\">{\r\n  &quot;isMigrated&quot;: true\r\n}</component>\r\n  <component name=\"MavenImportPreferences\">\r\n    <option name=\"generalSettings\">\r\n      <MavenGeneralSettings>\r\n        <option name=\"mavenHomeTypeForPersistence\" value=\"WRAPPER\" />\r\n      </MavenGeneralSettings>\r\n    </option>\r\n  </component>\r\n  <component name=\"McpProjectServerCommands\">\r\n    <commands />\r\n    <urls />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 3\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"3Bcdgc9R53AlXWipM3g6eirXXDh\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"Application.BCryptTest.executor\": \"Run\",\r\n    \"Maven.API_Gateway [compile].executor\": \"Run\",\r\n    \"ModuleVcsDetector.initialDetectionPerformed\": \"true\",\r\n    \"RequestMappingsPanelOrder0\": \"0\",\r\n    \"RequestMappingsPanelOrder1\": \"1\",\r\n    \"RequestMappingsPanelWidth0\": \"75\",\r\n    \"RequestMappingsPanelWidth1\": \"75\",\r\n    \"RunOnceActivity.MCP Project settings loaded\": \"true\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252\": \"true\",\r\n    \"RunOnceActivity.git.unshallow\": \"true\",\r\n    \"RunOnceActivity.typescript.service.memoryLimit.init\": \"true\",\r\n    \"SHARE_PROJECT_CONFIGURATION_FILES\": \"true\",\r\n    \"Spring Boot.ApiGatewayApplication.executor\": \"Run\",\r\n    \"Spring Boot.DeliveryServiceApplication.executor\": \"Run\",\r\n    \"Spring Boot.LogisticsTrackingApplication.executor\": \"Run\",\r\n    \"Spring Boot.NotificationServiceApplication.executor\": \"Run\",\r\n    \"Spring Boot.PaymentServiceApplication.executor\": \"Run\",\r\n    \"Spring Boot.ServiceRegistryApplication.executor\": \"Run\",\r\n    \"Spring Boot.UserManagementServiceApplication.executor\": \"Run\",\r\n    \"codeWithMe.voiceChat.enabledByDefault\": \"false\",\r\n    \"com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1\": \"true\",\r\n    \"git-widget-placeholder\": \"feature/notifications-kafka\",\r\n    \"ignore.virus.scanning.warn.message\": \"true\",\r\n    \"junie.onboarding.icon.badge.shown\": \"true\",\r\n    \"kotlin-language-version-configured\": \"true\",\r\n    \"last_opened_file_path\": \"C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/NotificationService/src/main/resources\",\r\n    \"node.js.detected.package.eslint\": \"true\",\r\n    \"node.js.detected.package.tslint\": \"true\",\r\n    \"node.js.selected.package.eslint\": \"(autodetect)\",\r\n    \"node.js.selected.package.tslint\": \"(autodetect)\",\r\n    \"nodejs_package_manager_path\": \"npm\",\r\n    \"run.configurations.included.in.services\": \"true\",\r\n    \"settings.editor.selected.configurable\": \"project.propVCSSupport.DirectoryMappings\",\r\n    \"to.speed.mode.migration.done\": \"true\",\r\n    \"vue.rearranger.settings.migration\": \"true\"\r\n  },\r\n  \"keyToStringList\": {\r\n    \"DatabaseDriversLRU\": [\r\n      \"mysql\"\r\n    ]\r\n  }\r\n}]]></component>\r\n  <component name=\"RecentsManager\">\r\n    <key name=\"CopyFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\USER\\Documents\\Tutored Projects\\Logistics_Tracking_Pr3\\NotificationService\\src\\main\\resources\" />\r\n    </key>\r\n  </component>\r\n  <component name=\"RunDashboard\">\r\n    <option name=\"configurationTypes\">\r\n      <set>\r\n        <option value=\"KtorApplicationConfigurationType\" />\r\n        <option value=\"MicronautRunConfigurationType\" />\r\n        <option value=\"QuarkusRunConfigurationType\" />\r\n        <option value=\"SpringBootApplicationConfigurationType\" />\r\n      </set>\r\n    </option>\r\n  </component>\r\n  <component name=\"RunManager\" selected=\"Spring Boot.UserManagementServiceApplication\">\r\n    <configuration name=\"ApiGatewayApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"API_Gateway\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.api_gateway.ApiGatewayApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"DeliveryServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"DeliveryService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.deliveryservice.DeliveryServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"LogisticsTrackingApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"Logistics_Tracking\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.logistics_tracking.LogisticsTrackingApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"NotificationServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"NotificationService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.notificationservice.NotificationServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"PaymentServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"PaymentService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.paymentservice.PaymentServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"ServiceRegistryApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"ServiceRegistry\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.serviceregistry.ServiceRegistryApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"UserManagementServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"UserManagementService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.usermanagementservice.UserManagementServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189\" />\r\n        <option value=\"bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"StructureViewState\">\r\n    <option name=\"selectedTab\" value=\"Logical\" />\r\n  </component>\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"ce47166a-8462-4f86-ae5a-a6b6309087cb\" name=\"Changes\" comment=\"\" />\r\n      <created>1774792545645</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1774792545645</updated>\r\n      <workItem from=\"1774792546984\" duration=\"3120000\" />\r\n      <workItem from=\"1774801379761\" duration=\"503000\" />\r\n      <workItem from=\"1774801892859\" duration=\"462000\" />\r\n      <workItem from=\"1775297390944\" duration=\"5836000\" />\r\n      <workItem from=\"1775319690476\" duration=\"708000\" />\r\n      <workItem from=\"1775383111853\" duration=\"68000\" />\r\n      <workItem from=\"1776509231772\" duration=\"361000\" />\r\n      <workItem from=\"1776708343484\" duration=\"11000\" />\r\n      <workItem from=\"1776756092003\" duration=\"19902000\" />\r\n      <workItem from=\"1776778459891\" duration=\"10624000\" />\r\n      <workItem from=\"1776859001827\" duration=\"14982000\" />\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776847726735</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776847726735</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"Feat(payment service): worked on the implementation of payment service except the controller which still need to be updated\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776862799341</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776862799341</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"fix: small change\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776863224777</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776863224777</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"git(merge) : merge with feature/dashboard-Actors\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776863758527</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776863758527</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"5\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <ignored-roots>\r\n      <path value=\"$PROJECT_DIR$/..\" />\r\n    </ignored-roots>\r\n    <MESSAGE value=\"Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail\" />\r\n    <MESSAGE value=\"Feat(payment service): worked on the implementation of payment service except the controller which still need to be updated\" />\r\n    <MESSAGE value=\"fix: small change\" />\r\n    <MESSAGE value=\"git(merge) : merge with feature/dashboard-Actors\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"git(merge) : merge with feature/dashboard-Actors\" />\r\n  </component>\r\n  <component name=\"github-copilot-workspace\">\r\n    <instructionFileLocations>\r\n      <option value=\".github/instructions\" />\r\n    </instructionFileLocations>\r\n    <promptFileLocations>\r\n      <option value=\".github/prompts\" />\r\n    </promptFileLocations>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision e1ce27ca1e976f3859e2b94f1b8c8afb6fd30977)
++++ b/.idea/workspace.xml	(date 1776930618631)
+@@ -4,35 +4,8 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="git(merge) : merge with feature/dashboard-Actors">
++    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="fix(): fixed issues when running the microservices">
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/ParcelServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/client/ParcelServiceClient.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/resources/application.yml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelOwnerClient.java" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/ParcelServiceClient.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/UserServiceClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/client/UserServiceClient.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/config/FirebaseConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/config/FirebaseConfig.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/DeliveryEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/java/com/example/notificationservice/consumer/DeliveryEventConsumer.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/ErrorResponse.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/GlobalExceptionHandler.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/repository/ParcelRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/repository/ParcelRepository.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/AgencyService.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/resources/application.yml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaConsumerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaConsumerConfig.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaProducerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/config/KafkaProducerConfig.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/controller/PaymentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/controller/PaymentController.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/CreatePaymentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/CreatePaymentRequest.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/ParcelSummaryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/ParcelSummaryResponse.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentQuoteRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentQuoteRequest.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentQuoteResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/dto/PaymentQuoteResponse.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentService/src/main/java/com/example/paymentservice/exception/GlobalExceptionHandler.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/resources/application.yml" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -66,12 +39,12 @@
+     &quot;assignee&quot;: &quot;LUC-XAVIER&quot;
+   }
+ }</component>
+-  <component name="GithubPullRequestsUISettings"><![CDATA[{
+-  "selectedUrlAndAccountId": {
+-    "url": "https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3",
+-    "accountId": "5a118463-d01e-4334-94f5-4e975f53cfe9"
+-  }
+-}]]></component>
++  <component name="GithubPullRequestsUISettings">{
++  &quot;selectedUrlAndAccountId&quot;: {
++    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3&quot;,
++    &quot;accountId&quot;: &quot;5a118463-d01e-4334-94f5-4e975f53cfe9&quot;
++  }
++}</component>
+   <component name="KubernetesApiPersistence">{}</component>
+   <component name="KubernetesApiProvider">{
+   &quot;isMigrated&quot;: true
+@@ -95,51 +68,51 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent"><![CDATA[{
+-  "keyToString": {
+-    "Application.BCryptTest.executor": "Run",
+-    "Maven.API_Gateway [compile].executor": "Run",
+-    "ModuleVcsDetector.initialDetectionPerformed": "true",
+-    "RequestMappingsPanelOrder0": "0",
+-    "RequestMappingsPanelOrder1": "1",
+-    "RequestMappingsPanelWidth0": "75",
+-    "RequestMappingsPanelWidth1": "75",
+-    "RunOnceActivity.MCP Project settings loaded": "true",
+-    "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+-    "RunOnceActivity.git.unshallow": "true",
+-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+-    "Spring Boot.ApiGatewayApplication.executor": "Run",
+-    "Spring Boot.DeliveryServiceApplication.executor": "Run",
+-    "Spring Boot.LogisticsTrackingApplication.executor": "Run",
+-    "Spring Boot.NotificationServiceApplication.executor": "Run",
+-    "Spring Boot.PaymentServiceApplication.executor": "Run",
+-    "Spring Boot.ServiceRegistryApplication.executor": "Run",
+-    "Spring Boot.UserManagementServiceApplication.executor": "Run",
+-    "codeWithMe.voiceChat.enabledByDefault": "false",
+-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+-    "git-widget-placeholder": "feature/notifications-kafka",
+-    "ignore.virus.scanning.warn.message": "true",
+-    "junie.onboarding.icon.badge.shown": "true",
+-    "kotlin-language-version-configured": "true",
+-    "last_opened_file_path": "C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/NotificationService/src/main/resources",
+-    "node.js.detected.package.eslint": "true",
+-    "node.js.detected.package.tslint": "true",
+-    "node.js.selected.package.eslint": "(autodetect)",
+-    "node.js.selected.package.tslint": "(autodetect)",
+-    "nodejs_package_manager_path": "npm",
+-    "run.configurations.included.in.services": "true",
+-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
+-    "to.speed.mode.migration.done": "true",
+-    "vue.rearranger.settings.migration": "true"
++  <component name="PropertiesComponent">{
++  &quot;keyToString&quot;: {
++    &quot;Application.BCryptTest.executor&quot;: &quot;Run&quot;,
++    &quot;Maven.API_Gateway [compile].executor&quot;: &quot;Run&quot;,
++    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
++    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
++    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
++    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
++    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
++    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
++    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
++    &quot;Spring Boot.ApiGatewayApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.DeliveryServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.LogisticsTrackingApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.NotificationServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.PaymentServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.ServiceRegistryApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.UserManagementServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
++    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
++    &quot;git-widget-placeholder&quot;: &quot;feature/notifications-kafka&quot;,
++    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
++    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
++    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
++    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/frontend-logistic-tracking&quot;,
++    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
++    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
++    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
++    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
++    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
++    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
++    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
++    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
++    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+   },
+-  "keyToStringList": {
+-    "DatabaseDriversLRU": [
+-      "mysql"
++  &quot;keyToStringList&quot;: {
++    &quot;DatabaseDriversLRU&quot;: [
++      &quot;mysql&quot;
+     ]
+   }
+-}]]></component>
++}</component>
+   <component name="RecentsManager">
+     <key name="CopyFile.RECENT_KEYS">
+       <recent name="C:\Users\USER\Documents\Tutored Projects\Logistics_Tracking_Pr3\NotificationService\src\main\resources" />
+@@ -235,7 +208,10 @@
+       <workItem from="1776708343484" duration="11000" />
+       <workItem from="1776756092003" duration="19902000" />
+       <workItem from="1776778459891" duration="10624000" />
+-      <workItem from="1776859001827" duration="14982000" />
++      <workItem from="1776859001827" duration="15707000" />
++      <workItem from="1776889681370" duration="3347000" />
++      <workItem from="1776915943599" duration="13000" />
++      <workItem from="1776927642304" duration="1790000" />
+     </task>
+     <task id="LOCAL-00001" summary="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail">
+       <option name="closed" value="true" />
+@@ -269,7 +245,15 @@
+       <option name="project" value="LOCAL" />
+       <updated>1776863758527</updated>
+     </task>
+-    <option name="localTasksCounter" value="5" />
++    <task id="LOCAL-00005" summary="fix(): fixed issues when running the microservices">
++      <option name="closed" value="true" />
++      <created>1776889168450</created>
++      <option name="number" value="00005" />
++      <option name="presentableId" value="LOCAL-00005" />
++      <option name="project" value="LOCAL" />
++      <updated>1776889168450</updated>
++    </task>
++    <option name="localTasksCounter" value="6" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+@@ -283,7 +267,8 @@
+     <MESSAGE value="Feat(payment service): worked on the implementation of payment service except the controller which still need to be updated" />
+     <MESSAGE value="fix: small change" />
+     <MESSAGE value="git(merge) : merge with feature/dashboard-Actors" />
+-    <option name="LAST_COMMIT_MESSAGE" value="git(merge) : merge with feature/dashboard-Actors" />
++    <MESSAGE value="fix(): fixed issues when running the microservices" />
++    <option name="LAST_COMMIT_MESSAGE" value="fix(): fixed issues when running the microservices" />
+   </component>
+   <component name="github-copilot-workspace">
+     <instructionFileLocations>

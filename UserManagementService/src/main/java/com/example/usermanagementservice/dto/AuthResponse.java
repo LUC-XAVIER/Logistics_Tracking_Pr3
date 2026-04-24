@@ -1,6 +1,5 @@
 package com.example.usermanagementservice.dto;
 
-import com.example.usermanagementservice.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,5 +11,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AuthResponse {
     private String token;
-    private User user;
+    private UserResponse user;
 }

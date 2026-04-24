@@ -2,29 +2,15 @@ package com.example.logistics_tracking.exception;
 
 import lombok.Getter;
 
-/**
- * Business Exception
- *
- * Purpose: Thrown when business rules are violated
- *
- * Examples:
- * - Invalid parcel weight
- * - User not eligible for service
- * - Payment amount incorrect
- *
- * These are EXPECTED errors with user-friendly messages
- */
 @Getter
 public class BusinessException extends RuntimeException {
 
-    private final String errorCode;  // Machine-readable code
+    private final String errorCode;
 
     public BusinessException(String message, String errorCode) {
-        super(message);  // User-friendly message
+        super(message);
         this.errorCode = errorCode;
     }
-
-    // Common business exceptions as static factory methods
 
     public static BusinessException invalidWeight() {
         return new BusinessException(
@@ -40,17 +26,42 @@ public class BusinessException extends RuntimeException {
         );
     }
 
-    public static BusinessException userNotFound(String userId) {
+    public static BusinessException invalidAddressInput() {
         return new BusinessException(
-                "User with ID " + userId + " not found",
-                "USER_NOT_FOUND"
+                "Provide either agency ID or manual address, not both",
+                "INVALID_ADDRESS_INPUT"
+        );
+    }
+
+    public static BusinessException missingAddressInput() {
+        return new BusinessException(
+                "Either agency ID or manual address is required",
+                "MISSING_ADDRESS_INPUT"
         );
     }
 
     public static BusinessException agencyNotFound(String agencyId) {
         return new BusinessException(
-                "Agency with ID " + agencyId + " not found or inactive",
+                "Agency with ID " + agencyId + " not found",
                 "AGENCY_NOT_FOUND"
         );
+    }
+
+    public static BusinessException parcelNotFound(String parcelId) {
+        return new BusinessException(
+                "Parcel with ID " + parcelId + " not found",
+                "PARCEL_NOT_FOUND"
+        );
+    }
+
+    public static BusinessException geocodingFailed(String address) {
+        return new BusinessException(
+                "Could not find coordinates for address: " + address,
+                "GEOCODING_FAILED"
+        );
+    }
+
+    public static BusinessException invalidStatus(String message) {
+        return new BusinessException(message, "INVALID_STATUS");
     }
 }

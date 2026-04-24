@@ -2,9 +2,9 @@ spring:
   application:
     name: NotificationService
   datasource:
-    url: jdbc:mysql://localhost:3306/logistics_db
+    url: jdbc:mysql://localhost:3307/logistics_db
     username: root
-    password: weber
+    password: weber12?
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -19,8 +19,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: your-email@gmail.com
-    password: your-app-password
+    username: fotsingweber4@gmail.com
+    password: weber12?
     properties:
       mail:
         smtp:
@@ -36,6 +36,12 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
 firebase:
   credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account-logistic-tracking.json}
   project-id: ${FIREBASE_PROJECT_ID:logistic-tracking-pr3}
+
+africastalking:
+  username: sandbox
+  api-key: atsk_24c766b1780cf00d1bb58b026898504dff86f397272acc37b24217cc49a3102d56f73979
+  sender-id: your-sender-id

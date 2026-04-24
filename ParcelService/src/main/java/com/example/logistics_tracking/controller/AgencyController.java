@@ -1,9 +1,11 @@
 package com.example.logistics_tracking.controller;
 
+import com.example.logistics_tracking.dto.CoordinatesResponse;
 import com.example.logistics_tracking.dto.old.AgencyRequest;
 import com.example.logistics_tracking.dto.old.AgencyResponse;
 import com.example.logistics_tracking.entity.Agency;
 import com.example.logistics_tracking.repository.AgencyRepository;
+import com.example.logistics_tracking.service.AgencyService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -17,13 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
-@RequestMapping("/api/v1/agencies")
+@RequestMapping("/logistics/api/v1/agencies")
 public class AgencyController {
 
     private final AgencyRepository agencyRepository;
+    private final AgencyService agencyService;
 
-    public AgencyController(AgencyRepository agencyRepository) {
+    public AgencyController(AgencyRepository agencyRepository, AgencyService agencyService) {
         this.agencyRepository = agencyRepository;
+        this.agencyService = agencyService;
     }
 
     @PostMapping
@@ -66,5 +70,10 @@ public class AgencyController {
                 agency.getCreatedAt(),
                 agency.getUpdatedAt()
         );
+    }
+    @GetMapping("/{agencyId}/coordinates")
+    public ResponseEntity<CoordinatesResponse> getAgencyCoordinates(@PathVariable UUID agencyId) {
+        CoordinatesResponse coordinates = agencyService.getAgencyCoordinates(agencyId);
+        return ResponseEntity.ok(coordinates);
     }
 }
