@@ -1,0 +1,1773 @@
+Index: ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.logistics_tracking.service;\r\n\r\nimport com.example.logistics_tracking.event.ParcelCreatedEvent;\r\nimport com.example.logistics_tracking.exception.BusinessException;\r\nimport com.example.logistics_tracking.entity.Coordinates;\r\nimport com.example.logistics_tracking.dto.ParcelRequest;\r\nimport com.example.logistics_tracking.dto.ParcelResponse;\r\nimport com.example.logistics_tracking.entity.Agency;\r\nimport com.example.logistics_tracking.entity.Parcel;\r\nimport com.example.logistics_tracking.enums.ParcelStatus;\r\nimport com.example.logistics_tracking.repository.ParcelRepository;\r\nimport lombok.RequiredArgsConstructor;\r\nimport lombok.extern.slf4j.Slf4j;\r\nimport org.springframework.stereotype.Service;\r\nimport org.springframework.transaction.annotation.Transactional;\r\nimport java.math.BigDecimal;\r\nimport java.time.LocalDateTime;\r\nimport java.util.List;\r\nimport java.util.UUID;\r\nimport java.util.stream.Collectors;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\n@Slf4j\r\npublic class ParcelService {\r\n\r\n    private final ParcelRepository parcelRepository;\r\n    private final AgencyService agencyService;\r\n    private final KafkaEventPublisher kafkaEventPublisher;\r\n\r\n    @Transactional\r\n    public ParcelResponse createParcel(ParcelRequest request) {\r\n        Agency sourceAgency = agencyService.findById(request.getSourceAgencyId());\r\n        Agency destAgency = agencyService.findById(request.getDestAgencyId());\r\n\r\n        Parcel parcel = Parcel.builder()\r\n                .userId(request.getUserId())\r\n                .sourceAgency(sourceAgency)\r\n                .sourceLatitude(sourceAgency.getLatitude())\r\n                .sourceLongitude(sourceAgency.getLongitude())\r\n                .destAgency(destAgency)\r\n                .destLatitude(destAgency.getLatitude())\r\n                .destLongitude(destAgency.getLongitude())\r\n                .weight(request.getWeight())\r\n                .fragility(request.getFragility())\r\n                .status(ParcelStatus.PENDING_PAYMENT)\r\n                .build();\r\n\r\n        calculateCostAndEta(parcel);\r\n\r\n        Parcel savedParcel = parcelRepository.save(parcel);\r\n        publishParcelCreatedEvent(savedParcel);\r\n\r\n        return mapToResponse(savedParcel);\r\n    }\r\n\r\n    @Transactional(readOnly = true)\r\n    public ParcelResponse getParcelById(String parcelId) {\r\n        Parcel parcel = parcelRepository.findById(parcelId)\r\n                .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));\r\n        return mapToResponse(parcel);\r\n    }\r\n\r\n    @Transactional(readOnly = true)\r\n    public List<ParcelResponse> getParcelsByUserId(String userId) {\r\n        return parcelRepository.findByUserId(userId).stream()\r\n                .map(this::mapToResponse)\r\n                .collect(Collectors.toList());\r\n    }\r\n\r\n    @Transactional(readOnly = true)\r\n    public List<ParcelResponse> getParcelsByStatus(ParcelStatus status) {\r\n        return parcelRepository.findByStatus(status).stream()\r\n                .map(this::mapToResponse)\r\n                .collect(Collectors.toList());\r\n    }\r\n\r\n    private void calculateCostAndEta(Parcel parcel) {\r\n        double distance = calculateDistance(\r\n                parcel.getSourceLatitude(), parcel.getSourceLongitude(),\r\n                parcel.getDestLatitude(), parcel.getDestLongitude()\r\n        );\r\n\r\n        BigDecimal baseCost = BigDecimal.valueOf(5000);\r\n        BigDecimal distanceCost = BigDecimal.valueOf(distance * 100);\r\n        BigDecimal fragilityCost = BigDecimal.valueOf(parcel.getFragility() * 500);\r\n        BigDecimal weightCost = BigDecimal.valueOf(parcel.getWeight() * 200);\r\n\r\n        BigDecimal totalCost = baseCost\r\n                .add(distanceCost)\r\n                .add(fragilityCost)\r\n                .add(weightCost);\r\n\r\n        parcel.setEstimatedCost(totalCost);\r\n\r\n        double baseSpeed = 60.0;\r\n        double adjustedSpeed = baseSpeed * (1 - (parcel.getFragility() / 15.0));\r\n        double travelHours = distance / adjustedSpeed;\r\n\r\n        parcel.setEstimatedDeliveryTime(\r\n                LocalDateTime.now().plusHours((long) Math.ceil(travelHours))\r\n        );\r\n\r\n        log.debug(\"Calculated cost: {} XAF, distance: {} km, ETA: {}\",\r\n                totalCost, distance, parcel.getEstimatedDeliveryTime());\r\n    }\r\n\r\n    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {\r\n        final int R = 6371;\r\n\r\n        double latDistance = Math.toRadians(lat2 - lat1);\r\n        double lonDistance = Math.toRadians(lon2 - lon1);\r\n\r\n        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)\r\n                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))\r\n                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);\r\n\r\n        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\r\n\r\n        return R * c;\r\n    }\r\n\r\n    private void publishParcelCreatedEvent(Parcel parcel) {\r\n        try {\r\n            ParcelCreatedEvent event = ParcelCreatedEvent.builder()\r\n                    .eventId(UUID.randomUUID().toString())\r\n                    .eventType(\"ParcelCreated\")\r\n                    .timestamp(LocalDateTime.now())\r\n                    .parcelId(parcel.getId())\r\n                    .userId(parcel.getUserId())\r\n                    .sourceAgencyId(parcel.getSourceAgency() != null ?\r\n                            parcel.getSourceAgency().getId().toString() : null)\r\n                    .sourceLatitude(parcel.getSourceLatitude())\r\n                    .sourceLongitude(parcel.getSourceLongitude())\r\n                    .destAgencyId(parcel.getDestAgency() != null ?\r\n                            parcel.getDestAgency().getId().toString() : null)\r\n                    .destLatitude(parcel.getDestLatitude())\r\n                    .destLongitude(parcel.getDestLongitude())\r\n                    .weight(parcel.getWeight())\r\n                    .fragility(parcel.getFragility())\r\n                    .estimatedCost(parcel.getEstimatedCost())\r\n                    .estimatedDeliveryTime(parcel.getEstimatedDeliveryTime())\r\n                    .build();\r\n\r\n            kafkaEventPublisher.publishParcelCreated(event);\r\n\r\n        } catch (Exception e) {\r\n            log.error(\"Failed to publish ParcelCreated event for parcel: {}\", parcel.getId(), e);\r\n        }\r\n    }\r\n\r\n    private ParcelResponse mapToResponse(Parcel parcel) {\r\n        return ParcelResponse.builder()\r\n                .id(parcel.getId())\r\n                .userId(parcel.getUserId())\r\n                .sourceAgencyId(parcel.getSourceAgency() != null ?\r\n                        parcel.getSourceAgency().getId().toString() : null)\r\n                .sourceAgencyName(parcel.getSourceAgency() != null ?\r\n                        parcel.getSourceAgency().getName() : null)\r\n                .sourceLatitude(parcel.getSourceLatitude())\r\n                .sourceLongitude(parcel.getSourceLongitude())\r\n                .destAgencyId(parcel.getDestAgency() != null ?\r\n                        parcel.getDestAgency().getId().toString() : null)\r\n                .destAgencyName(parcel.getDestAgency() != null ?\r\n                        parcel.getDestAgency().getName() : null)\r\n                .destLatitude(parcel.getDestLatitude())\r\n                .destLongitude(parcel.getDestLongitude())\r\n                .weight(parcel.getWeight())\r\n                .fragility(parcel.getFragility())\r\n                .status(parcel.getStatus())\r\n                .estimatedCost(parcel.getEstimatedCost())\r\n                .estimatedDeliveryTime(parcel.getEstimatedDeliveryTime())\r\n                .createdAt(parcel.getCreatedAt())\r\n                .build();\r\n    }\r\n    @Transactional(readOnly = true)\r\n    public UUID getParcelOwner(String parcelId) {\r\n        Parcel parcel = parcelRepository.findById(parcelId)\r\n                .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));\r\n        return parcel.getUserId();\r\n    }\r\n  public List<ParcelResponse> getAvailableParcels(UUID sourceAgencyId, UUID destAgencyId) {\r\n    List<Parcel> parcels = parcelRepository.findBySourceAgencyIdAndDestAgencyIdAndStatus(\r\n      sourceAgencyId,\r\n      destAgencyId,\r\n      ParcelStatus.WAITING_FOR_DRIVER\r\n    );\r\n\r\n    return parcels.stream()\r\n      .map(this::mapToResponse)\r\n      .collect(Collectors.toList());\r\n  }\r\n\r\n  @Transactional\r\n  public void updateParcelStatusToWaitingForDriver(String parcelId) {\r\n      Parcel parcel = parcelRepository.findById(parcelId)\r\n              .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));\r\n      \r\n      if (parcel.getStatus() == ParcelStatus.PENDING_PAYMENT) {\r\n          parcel.setStatus(ParcelStatus.WAITING_FOR_DRIVER);\r\n          parcelRepository.save(parcel);\r\n          log.info(\"Parcel {} status updated to WAITING_FOR_DRIVER\", parcelId);\r\n      } else {\r\n          log.warn(\"Parcel {} is not in PENDING_PAYMENT status. Current status: {}\", parcelId, parcel.getStatus());\r\n      }\r\n  }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java b/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java
+--- a/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java	(date 1777010653089)
+@@ -3,6 +3,9 @@
+ import com.example.logistics_tracking.event.ParcelCreatedEvent;
+ import com.example.logistics_tracking.exception.BusinessException;
+ import com.example.logistics_tracking.entity.Coordinates;
++import com.example.logistics_tracking.dto.AdminStatsResponse;
++import com.example.logistics_tracking.dto.ParcelQuoteRequest;
++import com.example.logistics_tracking.dto.ParcelQuoteResponse;
+ import com.example.logistics_tracking.dto.ParcelRequest;
+ import com.example.logistics_tracking.dto.ParcelResponse;
+ import com.example.logistics_tracking.entity.Agency;
+@@ -41,6 +44,8 @@
+                 .destAgency(destAgency)
+                 .destLatitude(destAgency.getLatitude())
+                 .destLongitude(destAgency.getLongitude())
++                .receiverName(request.getReceiverName())
++                .receiverPhone(request.getReceiverPhone())
+                 .weight(request.getWeight())
+                 .fragility(request.getFragility())
+                 .status(ParcelStatus.PENDING_PAYMENT)
+@@ -75,34 +80,59 @@
+                 .collect(Collectors.toList());
+     }
+ 
++    @Transactional(readOnly = true)
++    public ParcelQuoteResponse getQuote(ParcelQuoteRequest request) {
++        Agency sourceAgency = agencyService.findById(request.getSourceAgencyId().toString());
++        Agency destAgency = agencyService.findById(request.getDestAgencyId().toString());
++
++        double distance = calculateDistance(
++                sourceAgency.getLatitude(), sourceAgency.getLongitude(),
++                destAgency.getLatitude(), destAgency.getLongitude()
++        );
++
++        BigDecimal cost = calculateCost(distance, request.getWeight(), request.getFragility());
++        LocalDateTime eta = calculateEta(distance, request.getFragility());
++
++        return ParcelQuoteResponse.builder()
++                .estimatedCost(cost)
++                .estimatedDeliveryTime(eta)
++                .distanceKm(distance)
++                .sourceAgencyName(sourceAgency.getName())
++                .destAgencyName(destAgency.getName())
++                .build();
++    }
++
+     private void calculateCostAndEta(Parcel parcel) {
+         double distance = calculateDistance(
+                 parcel.getSourceLatitude(), parcel.getSourceLongitude(),
+                 parcel.getDestLatitude(), parcel.getDestLongitude()
+         );
+ 
++        parcel.setEstimatedCost(calculateCost(distance, parcel.getWeight(), parcel.getFragility()));
++        parcel.setEstimatedDeliveryTime(calculateEta(distance, parcel.getFragility()));
++
++        log.debug("Calculated cost: {} XAF, distance: {} km, ETA: {}",
++                parcel.getEstimatedCost(), distance, parcel.getEstimatedDeliveryTime());
++    }
++
++    private BigDecimal calculateCost(double distance, double weight, int fragility) {
+         BigDecimal baseCost = BigDecimal.valueOf(5000);
+         BigDecimal distanceCost = BigDecimal.valueOf(distance * 100);
+-        BigDecimal fragilityCost = BigDecimal.valueOf(parcel.getFragility() * 500);
+-        BigDecimal weightCost = BigDecimal.valueOf(parcel.getWeight() * 200);
++        BigDecimal fragilityCost = BigDecimal.valueOf(fragility * 500);
++        BigDecimal weightCost = BigDecimal.valueOf(weight * 200);
+ 
+-        BigDecimal totalCost = baseCost
++        return baseCost
+                 .add(distanceCost)
+                 .add(fragilityCost)
+                 .add(weightCost);
++    }
+ 
+-        parcel.setEstimatedCost(totalCost);
+-
++    private LocalDateTime calculateEta(double distance, int fragility) {
+         double baseSpeed = 60.0;
+-        double adjustedSpeed = baseSpeed * (1 - (parcel.getFragility() / 15.0));
++        double adjustedSpeed = baseSpeed * (1 - (fragility / 15.0));
+         double travelHours = distance / adjustedSpeed;
+ 
+-        parcel.setEstimatedDeliveryTime(
+-                LocalDateTime.now().plusHours((long) Math.ceil(travelHours))
+-        );
+-
+-        log.debug("Calculated cost: {} XAF, distance: {} km, ETA: {}",
+-                totalCost, distance, parcel.getEstimatedDeliveryTime());
++        return LocalDateTime.now().plusHours((long) Math.ceil(travelHours));
+     }
+ 
+     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+@@ -165,6 +195,8 @@
+                         parcel.getDestAgency().getName() : null)
+                 .destLatitude(parcel.getDestLatitude())
+                 .destLongitude(parcel.getDestLongitude())
++                .receiverName(parcel.getReceiverName())
++                .receiverPhone(parcel.getReceiverPhone())
+                 .weight(parcel.getWeight())
+                 .fragility(parcel.getFragility())
+                 .status(parcel.getStatus())
+@@ -173,35 +205,103 @@
+                 .createdAt(parcel.getCreatedAt())
+                 .build();
+     }
++
+     @Transactional(readOnly = true)
+     public UUID getParcelOwner(String parcelId) {
+         Parcel parcel = parcelRepository.findById(parcelId)
+                 .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
+         return parcel.getUserId();
+     }
+-  public List<ParcelResponse> getAvailableParcels(UUID sourceAgencyId, UUID destAgencyId) {
+-    List<Parcel> parcels = parcelRepository.findBySourceAgencyIdAndDestAgencyIdAndStatus(
+-      sourceAgencyId,
+-      destAgencyId,
+-      ParcelStatus.WAITING_FOR_DRIVER
+-    );
++
++    public List<ParcelResponse> getAvailableParcels(UUID sourceAgencyId, UUID destAgencyId) {
++        List<Parcel> parcels = parcelRepository.findBySourceAgencyIdAndDestAgencyIdAndStatus(
++                sourceAgencyId,
++                destAgencyId,
++                ParcelStatus.WAITING_FOR_AGENT
++        );
+ 
+-    return parcels.stream()
+-      .map(this::mapToResponse)
+-      .collect(Collectors.toList());
+-  }
++        return parcels.stream()
++                .map(this::mapToResponse)
++                .collect(Collectors.toList());
++    }
+ 
+-  @Transactional
+-  public void updateParcelStatusToWaitingForDriver(String parcelId) {
+-      Parcel parcel = parcelRepository.findById(parcelId)
+-              .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
+-      
+-      if (parcel.getStatus() == ParcelStatus.PENDING_PAYMENT) {
+-          parcel.setStatus(ParcelStatus.WAITING_FOR_DRIVER);
+-          parcelRepository.save(parcel);
+-          log.info("Parcel {} status updated to WAITING_FOR_DRIVER", parcelId);
+-      } else {
+-          log.warn("Parcel {} is not in PENDING_PAYMENT status. Current status: {}", parcelId, parcel.getStatus());
+-      }
+-  }
++    @Transactional
++    public void updateParcelStatusToWaitingForAgent(String parcelId) {
++        Parcel parcel = parcelRepository.findById(parcelId)
++                .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
++
++        if (parcel.getStatus() == ParcelStatus.PENDING_PAYMENT) {
++            parcel.setStatus(ParcelStatus.WAITING_FOR_AGENT);
++            parcelRepository.save(parcel);
++            log.info("Parcel {} status updated to WAITING_FOR_AGENT", parcelId);
++        } else {
++            log.warn("Parcel {} is not in PENDING_PAYMENT status. Current status: {}", parcelId, parcel.getStatus());
++        }
++    }
++
++    @Transactional
++    public void updateParcelsToInTransit(List<String> parcelIds) {
++        log.info("Updating {} parcels to IN_TRANSIT", parcelIds.size());
++        for (String id : parcelIds) {
++            parcelRepository.findById(id).ifPresent(p -> {
++                if (p.getStatus() == ParcelStatus.WAITING_FOR_AGENT) {
++                    p.setStatus(ParcelStatus.IN_TRANSIT);
++                    parcelRepository.save(p);
++                    log.debug("Parcel {} status updated to IN_TRANSIT", id);
++                }
++            });
++        }
++    }
++
++    @Transactional
++    public void updateParcelsToDelivered(List<String> parcelIds) {
++        log.info("Updating {} parcels to DELIVERED", parcelIds.size());
++        for (String id : parcelIds) {
++            parcelRepository.findById(id).ifPresent(p -> {
++                if (p.getStatus() == ParcelStatus.IN_TRANSIT) {
++                    p.setStatus(ParcelStatus.DELIVERED);
++                    parcelRepository.save(p);
++                    log.debug("Parcel {} status updated to DELIVERED", id);
++                }
++            });
++        }
++    }
++
++    @Transactional
++    public void cancelParcel(String parcelId) {
++        Parcel parcel = parcelRepository.findById(parcelId)
++                .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
++        if (!parcel.getStatus().canBeCancelled()) {
++            throw BusinessException.invalidStatus("Cannot cancel parcel in " + parcel.getStatus() + " state");
++        }
++        parcel.setStatus(ParcelStatus.CANCELLED);
++        parcelRepository.save(parcel);
++        log.info("Parcel {} has been cancelled", parcelId);
++    }
++
++    @Transactional(readOnly = true)
++    public List<ParcelResponse> getAllParcels() {
++        return parcelRepository.findAll().stream()
++                .map(this::mapToResponse)
++                .collect(Collectors.toList());
++    }
++
++    @Transactional(readOnly = true)
++    public AdminStatsResponse getAdminStats() {
++        List<Parcel> allParcels = parcelRepository.findAll();
++        long totalAgencies = agencyService.getAllAgencies().size();
++
++        BigDecimal totalRevenue = allParcels.stream()
++                .filter(p -> p.getStatus() == ParcelStatus.DELIVERED)
++                .map(Parcel::getEstimatedCost)
++                .reduce(BigDecimal.ZERO, BigDecimal::add);
++
++        return AdminStatsResponse.builder()
++                .totalParcels(allParcels.size())
++                .activeParcels(allParcels.stream().filter(p -> p.getStatus() == ParcelStatus.IN_TRANSIT).count())
++                .deliveredParcels(allParcels.stream().filter(p -> p.getStatus() == ParcelStatus.DELIVERED).count())
++                .totalRevenue(totalRevenue)
++                .totalAgencies(totalAgencies)
++                .build();
++    }
+ }
+Index: ParcelService/src/main/java/com/example/logistics_tracking/enums/ParcelStatus.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.logistics_tracking.enums;\r\n\r\npublic enum ParcelStatus {\r\n    PENDING_PAYMENT,\r\n    WAITING_FOR_DRIVER,\r\n    IN_TRANSIT,\r\n    DELIVERED,\r\n    CANCELLED,\r\n    RETURNED,\r\n    LOST;\r\n\r\n    public boolean isFinalState() {\r\n        return this == DELIVERED || this == CANCELLED || this == LOST;\r\n    }\r\n\r\n    public boolean canBeCancelled() {\r\n        return this == PENDING_PAYMENT || this == WAITING_FOR_DRIVER;\r\n    }\r\n\r\n    public boolean isActiveDelivery() {\r\n        return this == IN_TRANSIT;\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/ParcelService/src/main/java/com/example/logistics_tracking/enums/ParcelStatus.java b/ParcelService/src/main/java/com/example/logistics_tracking/enums/ParcelStatus.java
+--- a/ParcelService/src/main/java/com/example/logistics_tracking/enums/ParcelStatus.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/ParcelService/src/main/java/com/example/logistics_tracking/enums/ParcelStatus.java	(date 1777010653112)
+@@ -2,7 +2,7 @@
+ 
+ public enum ParcelStatus {
+     PENDING_PAYMENT,
+-    WAITING_FOR_DRIVER,
++    WAITING_FOR_AGENT,
+     IN_TRANSIT,
+     DELIVERED,
+     CANCELLED,
+@@ -14,7 +14,7 @@
+     }
+ 
+     public boolean canBeCancelled() {
+-        return this == PENDING_PAYMENT || this == WAITING_FOR_DRIVER;
++        return this == PENDING_PAYMENT || this == WAITING_FOR_AGENT;
+     }
+ 
+     public boolean isActiveDelivery() {
+Index: ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.logistics_tracking.exception;\r\n\r\nimport lombok.Getter;\r\n\r\n@Getter\r\npublic class BusinessException extends RuntimeException {\r\n\r\n    private final String errorCode;\r\n\r\n    public BusinessException(String message, String errorCode) {\r\n        super(message);\r\n        this.errorCode = errorCode;\r\n    }\r\n\r\n    public static BusinessException invalidWeight() {\r\n        return new BusinessException(\r\n                \"Parcel weight must be between 0.1 and 100 kg\",\r\n                \"INVALID_WEIGHT\"\r\n        );\r\n    }\r\n\r\n    public static BusinessException invalidFragility() {\r\n        return new BusinessException(\r\n                \"Fragility level must be between 1 and 10\",\r\n                \"INVALID_FRAGILITY\"\r\n        );\r\n    }\r\n\r\n    public static BusinessException invalidAddressInput() {\r\n        return new BusinessException(\r\n                \"Provide either agency ID or manual address, not both\",\r\n                \"INVALID_ADDRESS_INPUT\"\r\n        );\r\n    }\r\n\r\n    public static BusinessException missingAddressInput() {\r\n        return new BusinessException(\r\n                \"Either agency ID or manual address is required\",\r\n                \"MISSING_ADDRESS_INPUT\"\r\n        );\r\n    }\r\n\r\n    public static BusinessException agencyNotFound(String agencyId) {\r\n        return new BusinessException(\r\n                \"Agency with ID \" + agencyId + \" not found\",\r\n                \"AGENCY_NOT_FOUND\"\r\n        );\r\n    }\r\n\r\n    public static BusinessException parcelNotFound(String parcelId) {\r\n        return new BusinessException(\r\n                \"Parcel with ID \" + parcelId + \" not found\",\r\n                \"PARCEL_NOT_FOUND\"\r\n        );\r\n    }\r\n\r\n    public static BusinessException geocodingFailed(String address) {\r\n        return new BusinessException(\r\n                \"Could not find coordinates for address: \" + address,\r\n                \"GEOCODING_FAILED\"\r\n        );\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java b/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java
+--- a/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java	(date 1777010653155)
+@@ -60,4 +60,8 @@
+                 "GEOCODING_FAILED"
+         );
+     }
++
++    public static BusinessException invalidStatus(String message) {
++        return new BusinessException(message, "INVALID_STATUS");
++    }
+ }
+Index: NotificationService/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring:\r\n  application:\r\n    name: NotificationService\r\n  datasource:\r\n    url: jdbc:mysql://localhost:3307/logistics_db\r\n    username: root\r\n    password: weber12?\r\n    driver-class-name: com.mysql.cj.jdbc.Driver\r\n  jpa:\r\n    hibernate:\r\n      ddl-auto: update\r\n    database-platform: org.hibernate.dialect.MySQLDialect\r\n    show-sql: true\r\n    properties:\r\n      hibernate:\r\n        format_sql: true\r\n  kafka:\r\n    bootstrap-servers: localhost:9092\r\n  mail:\r\n    host: smtp.gmail.com\r\n    port: 587\r\n    username: fotsingweber4@gmail.com\r\n    password: weber12?\r\n    properties:\r\n      mail:\r\n        smtp:\r\n          auth: true\r\n          starttls:\r\n            enable: true\r\n          connectiontimeout: 5000\r\n          timeout: 3000\r\n          writetimeout: 5000\r\nserver:\r\n  port: 8086\r\neureka:\r\n  client:\r\n    service-url:\r\n      defaultZone: http://localhost:8761/eureka/\r\n\r\nfirebase:\r\n  credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account-logistic-tracking.json}\r\n  project-id: ${FIREBASE_PROJECT_ID:logistic-tracking-pr3}\r\n\r\nafricastalking:\r\n  username: sandbox\r\n  api-key: your-africastalking-api-key\r\n  sender-id: your-sender-id\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/NotificationService/src/main/resources/application.yml b/NotificationService/src/main/resources/application.yml
+--- a/NotificationService/src/main/resources/application.yml	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/NotificationService/src/main/resources/application.yml	(date 1777010652763)
+@@ -43,5 +43,5 @@
+ 
+ africastalking:
+   username: sandbox
+-  api-key: your-africastalking-api-key
++  api-key: atsk_24c766b1780cf00d1bb58b026898504dff86f397272acc37b24217cc49a3102d56f73979
+   sender-id: your-sender-id
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"ce47166a-8462-4f86-ae5a-a6b6309087cb\" name=\"Changes\" comment=\"Feat(delivery service): implemented the delivery service\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"EmbeddingIndexingInfo\">\r\n    <option name=\"cachedIndexableFilesCount\" value=\"137\" />\r\n    <option name=\"fileBasedEmbeddingIndicesEnabled\" value=\"true\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Interface\" />\r\n        <option value=\"Exception\" />\r\n        <option value=\"Class\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;fotsing12&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\">{\r\n  &quot;selectedUrlAndAccountId&quot;: {\r\n    &quot;url&quot;: &quot;https://github.com/LUC-XAVIER/Logistics_Tracking_Pr3&quot;,\r\n    &quot;accountId&quot;: &quot;5a118463-d01e-4334-94f5-4e975f53cfe9&quot;\r\n  }\r\n}</component>\r\n  <component name=\"KubernetesApiPersistence\">{}</component>\r\n  <component name=\"KubernetesApiProvider\">{\r\n  &quot;isMigrated&quot;: true\r\n}</component>\r\n  <component name=\"MavenImportPreferences\">\r\n    <option name=\"generalSettings\">\r\n      <MavenGeneralSettings>\r\n        <option name=\"mavenHomeTypeForPersistence\" value=\"WRAPPER\" />\r\n      </MavenGeneralSettings>\r\n    </option>\r\n  </component>\r\n  <component name=\"McpProjectServerCommands\">\r\n    <commands />\r\n    <urls />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 3\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"3Bcdgc9R53AlXWipM3g6eirXXDh\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;Maven.API_Gateway [compile].executor&quot;: &quot;Run&quot;,\r\n    &quot;Maven.ServiceRegistry [deploy].executor&quot;: &quot;Run&quot;,\r\n    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,\r\n    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,\r\n    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,\r\n    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,\r\n    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,\r\n    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,\r\n    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,\r\n    &quot;Spring Boot.ApiGatewayApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.DeliveryServiceApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.LogisticsTrackingApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.NotificationServiceApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.PaymentServiceApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;Spring Boot.ServiceRegistryApplication.executor&quot;: &quot;Run&quot;,\r\n    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,\r\n    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,\r\n    &quot;git-widget-placeholder&quot;: &quot;feature/notifications-kafka&quot;,\r\n    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,\r\n    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,\r\n    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,\r\n    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/ParcelService/src/main/java/com/example/logistics_tracking/exception&quot;,\r\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,\r\n    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,\r\n    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,\r\n    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,\r\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\r\n  }\r\n}</component>\r\n  <component name=\"RecentsManager\">\r\n    <key name=\"CopyFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\USER\\Documents\\Tutored Projects\\Logistics_Tracking_Pr3\\ParcelService\\src\\main\\java\\com\\example\\logistics_tracking\\exception\" />\r\n      <recent name=\"C:\\Users\\USER\\Documents\\Tutored Projects\\Logistics_Tracking_Pr3\\NotificationService\\src\\main\\resources\" />\r\n    </key>\r\n  </component>\r\n  <component name=\"RunDashboard\">\r\n    <option name=\"configurationTypes\">\r\n      <set>\r\n        <option value=\"KtorApplicationConfigurationType\" />\r\n        <option value=\"MicronautRunConfigurationType\" />\r\n        <option value=\"QuarkusRunConfigurationType\" />\r\n        <option value=\"SpringBootApplicationConfigurationType\" />\r\n      </set>\r\n    </option>\r\n  </component>\r\n  <component name=\"RunManager\" selected=\"Spring Boot.DeliveryServiceApplication\">\r\n    <configuration name=\"ApiGatewayApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"API_Gateway\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.api_gateway.ApiGatewayApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"DeliveryServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"DeliveryService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.deliveryservice.DeliveryServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"LogisticsTrackingApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"Logistics_Tracking\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.logistics_tracking.LogisticsTrackingApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"NotificationServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"NotificationService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.notificationservice.NotificationServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"PaymentServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"PaymentService\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.paymentservice.PaymentServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"ServiceRegistryApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <module name=\"ServiceRegistry\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.serviceregistry.ServiceRegistryApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189\" />\r\n        <option value=\"bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"StructureViewState\">\r\n    <option name=\"selectedTab\" value=\"Logical\" />\r\n  </component>\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"ce47166a-8462-4f86-ae5a-a6b6309087cb\" name=\"Changes\" comment=\"\" />\r\n      <created>1774792545645</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1774792545645</updated>\r\n      <workItem from=\"1774792546984\" duration=\"3120000\" />\r\n      <workItem from=\"1774801379761\" duration=\"503000\" />\r\n      <workItem from=\"1774801892859\" duration=\"462000\" />\r\n      <workItem from=\"1775297390944\" duration=\"5836000\" />\r\n      <workItem from=\"1775319690476\" duration=\"708000\" />\r\n      <workItem from=\"1775383111853\" duration=\"68000\" />\r\n      <workItem from=\"1775457541587\" duration=\"41377000\" />\r\n      <workItem from=\"1776508010141\" duration=\"1517000\" />\r\n      <workItem from=\"1776756285640\" duration=\"23482000\" />\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"Feat: implemented push notifications and notification functionality and started configuring kafka\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1775641891085</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1775641891085</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"Feat(Kafka): started implementing kafka configurations\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1775653397676</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1775653397676</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"Feat(Kafka): started implementing kafka configurations\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1775655703232</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1775655703232</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1775746688223</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1775746688223</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00005\" summary=\"Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776772810117</created>\r\n      <option name=\"number\" value=\"00005\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776772810117</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00006\" summary=\"Feat(parcel service): updated parcel service with new changes matching the delivery service\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776789225154</created>\r\n      <option name=\"number\" value=\"00006\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00006\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776789225154</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00007\" summary=\"Feat(delivery service): implemented the delivery service\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1776815342182</created>\r\n      <option name=\"number\" value=\"00007\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00007\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1776815342182</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"8\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <ignored-roots>\r\n      <path value=\"$PROJECT_DIR$/..\" />\r\n    </ignored-roots>\r\n    <MESSAGE value=\"Feat: implemented push notifications and notification functionality and started configuring kafka\" />\r\n    <MESSAGE value=\"Feat(Kafka): started implementing kafka configurations\" />\r\n    <MESSAGE value=\"Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events\" />\r\n    <MESSAGE value=\"Feat(parcel service): updated parcel service with new changes matching the delivery service\" />\r\n    <MESSAGE value=\"Feat(delivery service): implemented the delivery service\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"Feat(delivery service): implemented the delivery service\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/.idea/workspace.xml	(date 1777010668154)
+@@ -4,13 +4,42 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="Feat(delivery service): implemented the delivery service">
++    <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="fixed some minor implementation mistakes">
++      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/DeliveryService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/pom.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripRequest.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/listener/ParcelEventListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/listener/ParcelEventListener.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/KafkaEventPublisher.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/KafkaEventPublisher.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java" beforeDir="false" afterPath="$PROJECT_DIR$/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationService/src/main/resources/application.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/ParcelService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/pom.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/enums/ParcelStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/enums/ParcelStatus.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/exception/BusinessException.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ParcelService/src/main/java/com/example/logistics_tracking/service/ParcelService.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/UserManagementService/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/pom.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/resources/application.yml" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+     <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="CopilotPersistence">
++    <persistenceIdMap>
++      <entry key="_C:/Users/fonin/IdeaProjects/Logistics_Tracking_Pr3" value="3Bcdgc9R53AlXWipM3g6eirXXDh" />
++    </persistenceIdMap>
+   </component>
+   <component name="EmbeddingIndexingInfo">
+     <option name="cachedIndexableFilesCount" value="137" />
+@@ -19,8 +48,8 @@
+   <component name="FileTemplateManagerImpl">
+     <option name="RECENT_TEMPLATES">
+       <list>
++        <option value="Enum" />
+         <option value="Interface" />
+-        <option value="Exception" />
+         <option value="Class" />
+       </list>
+     </option>
+@@ -31,7 +60,7 @@
+   <component name="GitHubPullRequestSearchHistory">{
+   &quot;lastFilter&quot;: {
+     &quot;state&quot;: &quot;OPEN&quot;,
+-    &quot;assignee&quot;: &quot;fotsing12&quot;
++    &quot;assignee&quot;: &quot;LUC-XAVIER&quot;
+   }
+ }</component>
+   <component name="GithubPullRequestsUISettings">{
+@@ -65,8 +94,8 @@
+   </component>
+   <component name="PropertiesComponent">{
+   &quot;keyToString&quot;: {
++    &quot;Application.BCryptTest.executor&quot;: &quot;Run&quot;,
+     &quot;Maven.API_Gateway [compile].executor&quot;: &quot;Run&quot;,
+-    &quot;Maven.ServiceRegistry [deploy].executor&quot;: &quot;Run&quot;,
+     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+     &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+     &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+@@ -84,13 +113,14 @@
+     &quot;Spring Boot.NotificationServiceApplication.executor&quot;: &quot;Run&quot;,
+     &quot;Spring Boot.PaymentServiceApplication.executor&quot;: &quot;Run&quot;,
+     &quot;Spring Boot.ServiceRegistryApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.UserManagementServiceApplication.executor&quot;: &quot;Run&quot;,
+     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+     &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+     &quot;git-widget-placeholder&quot;: &quot;feature/notifications-kafka&quot;,
+     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+-    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/ParcelService/src/main/java/com/example/logistics_tracking/exception&quot;,
++    &quot;last_opened_file_path&quot;: &quot;C:/Users/USER/Documents/Tutored Projects/Logistics_Tracking_Pr3/frontend-logistic-tracking&quot;,
+     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+@@ -100,11 +130,15 @@
+     &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
+     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
++  },
++  &quot;keyToStringList&quot;: {
++    &quot;DatabaseDriversLRU&quot;: [
++      &quot;mysql&quot;
++    ]
+   }
+ }</component>
+   <component name="RecentsManager">
+     <key name="CopyFile.RECENT_KEYS">
+-      <recent name="C:\Users\USER\Documents\Tutored Projects\Logistics_Tracking_Pr3\ParcelService\src\main\java\com\example\logistics_tracking\exception" />
+       <recent name="C:\Users\USER\Documents\Tutored Projects\Logistics_Tracking_Pr3\NotificationService\src\main\resources" />
+     </key>
+   </component>
+@@ -118,7 +152,7 @@
+       </set>
+     </option>
+   </component>
+-  <component name="RunManager" selected="Spring Boot.DeliveryServiceApplication">
++  <component name="RunManager">
+     <configuration name="ApiGatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+       <module name="API_Gateway" />
+       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.api_gateway.ApiGatewayApplication" />
+@@ -161,6 +195,32 @@
+         <option name="Make" enabled="true" />
+       </method>
+     </configuration>
++    <configuration name="UserManagementServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
++      <module name="UserManagementService" />
++      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.usermanagementservice.UserManagementServiceApplication" />
++      <extension name="net.ashald.envfile">
++        <option name="IS_ENABLED" value="false" />
++        <option name="IS_SUBST" value="true" />
++        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
++        <option name="IS_IGNORE_MISSING_FILES" value="false" />
++        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
++        <ENTRIES>
++          <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
++        </ENTRIES>
++      </extension>
++      <method v="2">
++        <option name="Make" enabled="true" />
++      </method>
++    </configuration>
++    <list>
++      <item itemvalue="Spring Boot.ApiGatewayApplication" />
++      <item itemvalue="Spring Boot.DeliveryServiceApplication" />
++      <item itemvalue="Spring Boot.LogisticsTrackingApplication" />
++      <item itemvalue="Spring Boot.NotificationServiceApplication" />
++      <item itemvalue="Spring Boot.PaymentServiceApplication" />
++      <item itemvalue="Spring Boot.ServiceRegistryApplication" />
++      <item itemvalue="Spring Boot.UserManagementServiceApplication" />
++    </list>
+   </component>
+   <component name="SharedIndexes">
+     <attachedChunks>
+@@ -187,67 +247,81 @@
+       <workItem from="1775297390944" duration="5836000" />
+       <workItem from="1775319690476" duration="708000" />
+       <workItem from="1775383111853" duration="68000" />
+-      <workItem from="1775457541587" duration="41377000" />
+-      <workItem from="1776508010141" duration="1517000" />
+-      <workItem from="1776756285640" duration="23482000" />
++      <workItem from="1776509231772" duration="361000" />
++      <workItem from="1776708343484" duration="11000" />
++      <workItem from="1776756092003" duration="19902000" />
++      <workItem from="1776778459891" duration="10624000" />
++      <workItem from="1776859001827" duration="15707000" />
++      <workItem from="1776889681370" duration="3347000" />
++      <workItem from="1776915943599" duration="13000" />
++      <workItem from="1776927642304" duration="10270000" />
++      <workItem from="1776953956000" duration="10126000" />
+     </task>
+-    <task id="LOCAL-00001" summary="Feat: implemented push notifications and notification functionality and started configuring kafka">
++    <task id="LOCAL-00001" summary="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail">
+       <option name="closed" value="true" />
+-      <created>1775641891085</created>
++      <created>1776847726735</created>
+       <option name="number" value="00001" />
+       <option name="presentableId" value="LOCAL-00001" />
+       <option name="project" value="LOCAL" />
+-      <updated>1775641891085</updated>
++      <updated>1776847726735</updated>
+     </task>
+-    <task id="LOCAL-00002" summary="Feat(Kafka): started implementing kafka configurations">
++    <task id="LOCAL-00002" summary="Feat(payment service): worked on the implementation of payment service except the controller which still need to be updated">
+       <option name="closed" value="true" />
+-      <created>1775653397676</created>
++      <created>1776862799341</created>
+       <option name="number" value="00002" />
+       <option name="presentableId" value="LOCAL-00002" />
+       <option name="project" value="LOCAL" />
+-      <updated>1775653397676</updated>
++      <updated>1776862799341</updated>
+     </task>
+-    <task id="LOCAL-00003" summary="Feat(Kafka): started implementing kafka configurations">
++    <task id="LOCAL-00003" summary="fix: small change">
+       <option name="closed" value="true" />
+-      <created>1775655703232</created>
++      <created>1776863224777</created>
+       <option name="number" value="00003" />
+       <option name="presentableId" value="LOCAL-00003" />
+       <option name="project" value="LOCAL" />
+-      <updated>1775655703232</updated>
++      <updated>1776863224777</updated>
+     </task>
+-    <task id="LOCAL-00004" summary="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events">
++    <task id="LOCAL-00004" summary="git(merge) : merge with feature/dashboard-Actors">
+       <option name="closed" value="true" />
+-      <created>1775746688223</created>
++      <created>1776863758527</created>
+       <option name="number" value="00004" />
+       <option name="presentableId" value="LOCAL-00004" />
+       <option name="project" value="LOCAL" />
+-      <updated>1775746688223</updated>
++      <updated>1776863758527</updated>
+     </task>
+-    <task id="LOCAL-00005" summary="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events">
++    <task id="LOCAL-00005" summary="fix(): fixed issues when running the microservices">
+       <option name="closed" value="true" />
+-      <created>1776772810117</created>
++      <created>1776889168450</created>
+       <option name="number" value="00005" />
+       <option name="presentableId" value="LOCAL-00005" />
+       <option name="project" value="LOCAL" />
+-      <updated>1776772810117</updated>
++      <updated>1776889168450</updated>
+     </task>
+-    <task id="LOCAL-00006" summary="Feat(parcel service): updated parcel service with new changes matching the delivery service">
++    <task id="LOCAL-00006" summary="fix(controllers): updated controllers to add /logistics in front of all endpoints">
+       <option name="closed" value="true" />
+-      <created>1776789225154</created>
++      <created>1776932156514</created>
+       <option name="number" value="00006" />
+       <option name="presentableId" value="LOCAL-00006" />
+       <option name="project" value="LOCAL" />
+-      <updated>1776789225154</updated>
++      <updated>1776932156514</updated>
+     </task>
+-    <task id="LOCAL-00007" summary="Feat(delivery service): implemented the delivery service">
++    <task id="LOCAL-00007" summary="fix(clients): modified feign clients to match new endpoint nomenclature and also updated the endpoint in the API Gateway">
+       <option name="closed" value="true" />
+-      <created>1776815342182</created>
++      <created>1776932974884</created>
+       <option name="number" value="00007" />
+       <option name="presentableId" value="LOCAL-00007" />
+       <option name="project" value="LOCAL" />
+-      <updated>1776815342182</updated>
++      <updated>1776932974884</updated>
+     </task>
+-    <option name="localTasksCounter" value="8" />
++    <task id="LOCAL-00008" summary="fixed some minor implementation mistakes">
++      <option name="closed" value="true" />
++      <created>1776948431642</created>
++      <option name="number" value="00008" />
++      <option name="presentableId" value="LOCAL-00008" />
++      <option name="project" value="LOCAL" />
++      <updated>1776948431642</updated>
++    </task>
++    <option name="localTasksCounter" value="9" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+@@ -268,11 +342,22 @@
+     <ignored-roots>
+       <path value="$PROJECT_DIR$/.." />
+     </ignored-roots>
+-    <MESSAGE value="Feat: implemented push notifications and notification functionality and started configuring kafka" />
+-    <MESSAGE value="Feat(Kafka): started implementing kafka configurations" />
+-    <MESSAGE value="Feat(parcel service): implemented the features of the app linked to the parcel creation and publishing of events" />
+-    <MESSAGE value="Feat(parcel service): updated parcel service with new changes matching the delivery service" />
+-    <MESSAGE value="Feat(delivery service): implemented the delivery service" />
+-    <option name="LAST_COMMIT_MESSAGE" value="Feat(delivery service): implemented the delivery service" />
++    <MESSAGE value="Feat(delivery service): finished with delivery service and updted notificarion service by including send of mail" />
++    <MESSAGE value="Feat(payment service): worked on the implementation of payment service except the controller which still need to be updated" />
++    <MESSAGE value="fix: small change" />
++    <MESSAGE value="git(merge) : merge with feature/dashboard-Actors" />
++    <MESSAGE value="fix(): fixed issues when running the microservices" />
++    <MESSAGE value="fix(controllers): updated controllers to add /logistics in front of all endpoints" />
++    <MESSAGE value="fix(clients): modified feign clients to match new endpoint nomenclature and also updated the endpoint in the API Gateway" />
++    <MESSAGE value="fixed some minor implementation mistakes" />
++    <option name="LAST_COMMIT_MESSAGE" value="fixed some minor implementation mistakes" />
++  </component>
++  <component name="github-copilot-workspace">
++    <instructionFileLocations>
++      <option value=".github/instructions" />
++    </instructionFileLocations>
++    <promptFileLocations>
++      <option value=".github/prompts" />
++    </promptFileLocations>
+   </component>
+ </project>
+\ No newline at end of file
+Index: DeliveryService/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n\txsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n\t<modelVersion>4.0.0</modelVersion>\r\n\t<parent>\r\n\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t<artifactId>spring-boot-starter-parent</artifactId>\r\n\t\t<version>4.0.5</version>\r\n\t\t<relativePath/> <!-- lookup parent from repository -->\r\n\t</parent>\r\n\t<groupId>com.example</groupId>\r\n\t<artifactId>DeliveryService</artifactId>\r\n\t<version>0.0.1-SNAPSHOT</version>\r\n\t<name>DeliveryService</name>\r\n\t<description>DeliveryService</description>\r\n\t<url/>\r\n\t<licenses>\r\n\t\t<license/>\r\n\t</licenses>\r\n\t<developers>\r\n\t\t<developer/>\r\n\t</developers>\r\n\t<scm>\r\n\t\t<connection/>\r\n\t\t<developerConnection/>\r\n\t\t<tag/>\r\n\t\t<url/>\r\n\t</scm>\r\n\t<properties>\r\n\t\t<java.version>21</java.version>\r\n\t\t<spring-cloud.version>2025.1.1</spring-cloud.version>\r\n\t</properties>\r\n\r\n\t<dependencyManagement>\r\n\t\t<dependencies>\r\n\t\t\t<dependency>\r\n\t\t\t\t<groupId>org.springframework.cloud</groupId>\r\n\t\t\t\t<artifactId>spring-cloud-dependencies</artifactId>\r\n\t\t\t\t<version>${spring-cloud.version}</version>\r\n\t\t\t\t<type>pom</type>\r\n\t\t\t\t<scope>import</scope>\r\n\t\t\t</dependency>\r\n\t\t</dependencies>\r\n\t</dependencyManagement>\r\n\t<dependencies>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-test</artifactId>\r\n\t\t\t<scope>test</scope>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Spring Boot Web -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-web</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Spring Data JPA -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-data-jpa</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- MySQL Driver -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.mysql</groupId>\r\n\t\t\t<artifactId>mysql-connector-j</artifactId>\r\n\t\t\t<scope>runtime</scope>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Kafka -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.kafka</groupId>\r\n\t\t\t<artifactId>spring-kafka</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.cloud</groupId>\r\n\t\t\t<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.cloud</groupId>\r\n\t\t\t<artifactId>spring-cloud-starter-openfeign</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Lombok -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.projectlombok</groupId>\r\n\t\t\t<artifactId>lombok</artifactId>\r\n\t\t\t<optional>true</optional>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Validation -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-validation</artifactId>\r\n\t\t</dependency>\r\n\r\n\t</dependencies>\r\n\r\n\t<build>\r\n\t\t<plugins>\r\n\t\t\t<plugin>\r\n\t\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t\t<artifactId>spring-boot-maven-plugin</artifactId>\r\n\t\t\t</plugin>\r\n\t\t</plugins>\r\n\t</build>\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/DeliveryService/pom.xml b/DeliveryService/pom.xml
+--- a/DeliveryService/pom.xml	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/DeliveryService/pom.xml	(date 1777010668324)
+@@ -109,6 +109,27 @@
+ 			<plugin>
+ 				<groupId>org.springframework.boot</groupId>
+ 				<artifactId>spring-boot-maven-plugin</artifactId>
++				<configuration>
++					<excludes>
++						<exclude>
++							<groupId>org.projectlombok</groupId>
++							<artifactId>lombok</artifactId>
++						</exclude>
++					</excludes>
++				</configuration>
++			</plugin>
++			<plugin>
++				<groupId>org.apache.maven.plugins</groupId>
++				<artifactId>maven-compiler-plugin</artifactId>
++				<configuration>
++					<annotationProcessorPaths>
++						<path>
++							<groupId>org.projectlombok</groupId>
++							<artifactId>lombok</artifactId>
++							<version>${lombok.version}</version>
++						</path>
++					</annotationProcessorPaths>
++				</configuration>
+ 			</plugin>
+ 		</plugins>
+ 	</build>
+Index: DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.deliveryservice.controller;\r\n\r\nimport com.example.deliveryservice.dto.AvailableParcelResponse;\r\nimport com.example.deliveryservice.dto.TripRequest;\r\nimport com.example.deliveryservice.dto.TripResponse;\r\nimport com.example.deliveryservice.service.TripService;\r\nimport jakarta.validation.Valid;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.web.bind.annotation.*;\r\n\r\nimport java.util.List;\r\nimport java.util.UUID;\r\n\r\n@RestController\r\n@RequestMapping(\"/logistics/api/v1/trips\")\r\n@RequiredArgsConstructor\r\npublic class TripController {\r\n\r\n    private final TripService tripService;\r\n\r\n    @PostMapping\r\n    public ResponseEntity<TripResponse> createTrip(@Valid @RequestBody TripRequest request) {\r\n        TripResponse response = tripService.createTrip(request);\r\n        return new ResponseEntity<>(response, HttpStatus.CREATED);\r\n    }\r\n\r\n    @GetMapping(\"/{tripId}\")\r\n    public ResponseEntity<TripResponse> getTrip(@PathVariable UUID tripId) {\r\n        TripResponse response = tripService.getTrip(tripId);\r\n        return ResponseEntity.ok(response);\r\n    }\r\n\r\n    @GetMapping(\"/{tripId}/available-parcels\")\r\n    public ResponseEntity<List<AvailableParcelResponse>> getAvailableParcels(\r\n            @PathVariable UUID tripId) {\r\n        List<AvailableParcelResponse> parcels = tripService.getAvailableParcels(tripId);\r\n        return ResponseEntity.ok(parcels);\r\n    }\r\n\r\n    @PostMapping(\"/{tripId}/parcels\")\r\n    public ResponseEntity<Void> assignParcels(\r\n            @PathVariable UUID tripId,\r\n            @RequestBody List<String> parcelIds) {\r\n        tripService.assignParcels(tripId, parcelIds);\r\n        return ResponseEntity.ok().build();\r\n    }\r\n\r\n    @PostMapping(\"/{tripId}/start\")\r\n    public ResponseEntity<TripResponse> startTrip(@PathVariable UUID tripId) {\r\n        TripResponse response = tripService.startTrip(tripId);\r\n        return ResponseEntity.ok(response);\r\n    }\r\n\r\n    @PostMapping(\"/{tripId}/segments/{segmentId}/reach\")\r\n    public ResponseEntity<TripResponse> markSegmentReached(\r\n            @PathVariable UUID tripId,\r\n            @PathVariable UUID segmentId) {\r\n        TripResponse response = tripService.markSegmentReached(tripId, segmentId);\r\n        return ResponseEntity.ok(response);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java b/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java
+--- a/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/DeliveryService/src/main/java/com/example/deliveryservice/controller/TripController.java	(date 1777010652784)
+@@ -1,8 +1,10 @@
+ package com.example.deliveryservice.controller;
+ 
++import com.example.deliveryservice.dto.AgentStats;
+ import com.example.deliveryservice.dto.AvailableParcelResponse;
+ import com.example.deliveryservice.dto.TripRequest;
+ import com.example.deliveryservice.dto.TripResponse;
++import com.example.deliveryservice.enums.TripStatus;
+ import com.example.deliveryservice.service.TripService;
+ import jakarta.validation.Valid;
+ import lombok.RequiredArgsConstructor;
+@@ -60,4 +62,17 @@
+         TripResponse response = tripService.markSegmentReached(tripId, segmentId);
+         return ResponseEntity.ok(response);
+     }
++
++    @GetMapping("/agent/{agentId}")
++    public ResponseEntity<List<TripResponse>> getAgentTrips(
++            @PathVariable String agentId,
++            @RequestParam(required = false) TripStatus status) {
++        List<TripResponse> trips = tripService.getTripsByAgent(agentId, status);
++        return ResponseEntity.ok(trips);
++    }
++
++    @GetMapping("/agent/{agentId}/summary")
++    public ResponseEntity<AgentStats> getAgentSummary(@PathVariable String agentId) {
++        return ResponseEntity.ok(tripService.getAgentStats(agentId));
++    }
+ }
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <annotationProcessing>\r\n      <profile default=\"true\" name=\"Default\" enabled=\"true\" />\r\n      <profile name=\"Maven default annotation processors profile\" enabled=\"true\">\r\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\r\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\r\n        <outputRelativeToContentRoot value=\"true\" />\r\n        <module name=\"DeliveryService\" />\r\n        <module name=\"API_Gateway\" />\r\n        <module name=\"Logistics_Tracking\" />\r\n        <module name=\"NotificationService\" />\r\n        <module name=\"UserManagementService\" />\r\n        <module name=\"ServiceRegistry\" />\r\n        <module name=\"PaymentService\" />\r\n      </profile>\r\n    </annotationProcessing>\r\n  </component>\r\n  <component name=\"JavacSettings\">\r\n    <option name=\"ADDITIONAL_OPTIONS_OVERRIDE\">\r\n      <module name=\"API_Gateway\" options=\"-parameters\" />\r\n      <module name=\"DeliveryService\" options=\"-parameters\" />\r\n      <module name=\"Logistics_Tracking\" options=\"-parameters\" />\r\n      <module name=\"NotificationService\" options=\"-parameters\" />\r\n      <module name=\"PaymentService\" options=\"-parameters\" />\r\n      <module name=\"ServiceRegistry\" options=\"-parameters\" />\r\n      <module name=\"UserManagementService\" options=\"-parameters\" />\r\n    </option>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+--- a/.idea/compiler.xml	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/.idea/compiler.xml	(date 1777010668364)
+@@ -7,13 +7,21 @@
+         <sourceOutputDir name="target/generated-sources/annotations" />
+         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+         <outputRelativeToContentRoot value="true" />
+-        <module name="DeliveryService" />
+         <module name="API_Gateway" />
+-        <module name="Logistics_Tracking" />
+         <module name="NotificationService" />
+-        <module name="UserManagementService" />
+         <module name="ServiceRegistry" />
+         <module name="PaymentService" />
++      </profile>
++      <profile name="Annotation profile for UserManagementService" enabled="true">
++        <sourceOutputDir name="target/generated-sources/annotations" />
++        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
++        <outputRelativeToContentRoot value="true" />
++        <processorPath useClasspath="false">
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
++        </processorPath>
++        <module name="Logistics_Tracking" />
++        <module name="DeliveryService" />
++        <module name="UserManagementService" />
+       </profile>
+     </annotationProcessing>
+   </component>
+Index: UserManagementService/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring:\r\n  application:\r\n    name: UserManagementService\r\n  datasource:\r\n    url: jdbc:mysql://localhost:3307/logistics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true\r\n    username: root\r\n    password: weber12?\r\n    driver-class-name: com.mysql.cj.jdbc.Driver\r\n  jpa:\r\n    hibernate:\r\n      ddl-auto: update\r\n    database-platform: org.hibernate.dialect.MySQLDialect\r\n    show-sql: true\r\n    properties:\r\n      hibernate:\r\n        format_sql: true\r\n  kafka:\r\n    bootstrap-servers: localhost:9092\r\n\r\nserver:\r\n  port: 8085\r\neureka:\r\n  client:\r\n    service-url:\r\n      defaultZone: http://localhost:8761/eureka/\r\n\r\njwt:\r\n  secret: ${JWT_SECRET}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/UserManagementService/src/main/resources/application.yml b/UserManagementService/src/main/resources/application.yml
+--- a/UserManagementService/src/main/resources/application.yml	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/UserManagementService/src/main/resources/application.yml	(date 1777010652918)
+@@ -25,4 +25,4 @@
+       defaultZone: http://localhost:8761/eureka/
+ 
+ jwt:
+-  secret: ${JWT_SECRET}
++  secret: 4tQT9UMVUmtI8FnJRFgN+Vg3mgyJB1Rlmp94Qfe3Gjk=
+Index: DeliveryService/src/main/java/com/example/deliveryservice/dto/TripRequest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.deliveryservice.dto;\r\n\r\nimport jakarta.validation.constraints.NotBlank;\r\nimport jakarta.validation.constraints.NotNull;\r\nimport lombok.*;\r\n\r\nimport java.util.UUID;\r\n\r\n@Data\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\npublic class TripRequest {\r\n\r\n    @NotBlank(message = \"Driver ID is required\")\r\n    private String driverId;\r\n\r\n    @NotNull(message = \"Source agency ID is required\")\r\n    private UUID sourceAgencyId;\r\n\r\n    @NotNull(message = \"Destination agency ID is required\")\r\n    private UUID destAgencyId;\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripRequest.java b/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripRequest.java
+--- a/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripRequest.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripRequest.java	(date 1777010668533)
+@@ -18,6 +18,10 @@
+     @NotNull(message = "Source agency ID is required")
+     private UUID sourceAgencyId;
+ 
++    private String sourceAgencyName;
++
+     @NotNull(message = "Destination agency ID is required")
+     private UUID destAgencyId;
++
++    private String destAgencyName;
+ }
+\ No newline at end of file
+Index: ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.logistics_tracking.controller;\r\n\r\nimport com.example.logistics_tracking.dto.ParcelRequest;\r\nimport com.example.logistics_tracking.dto.ParcelResponse;\r\nimport com.example.logistics_tracking.enums.ParcelStatus;\r\nimport com.example.logistics_tracking.service.ParcelService;\r\nimport jakarta.validation.Valid;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.web.bind.annotation.*;\r\nimport java.util.List;\r\nimport java.util.UUID;\r\n\r\n@RestController\r\n@RequestMapping(\"/logistics/api/v1/parcels\")\r\n@RequiredArgsConstructor\r\npublic class ParcelController {\r\n\r\n    private final ParcelService parcelService;\r\n\r\n    @PostMapping\r\n    public ResponseEntity<ParcelResponse> createParcel(@Valid @RequestBody ParcelRequest request) {\r\n        ParcelResponse response = parcelService.createParcel(request);\r\n        return new ResponseEntity<>(response, HttpStatus.CREATED);\r\n    }\r\n\r\n    @GetMapping(\"/{parcelId}\")\r\n    public ResponseEntity<ParcelResponse> getParcel(@PathVariable String parcelId) {\r\n        ParcelResponse response = parcelService.getParcelById(parcelId);\r\n        return ResponseEntity.ok(response);\r\n    }\r\n\r\n    @GetMapping(\"/user/{userId}\")\r\n    public ResponseEntity<List<ParcelResponse>> getUserParcels(@PathVariable String userId) {\r\n        List<ParcelResponse> parcels = parcelService.getParcelsByUserId(userId);\r\n        return ResponseEntity.ok(parcels);\r\n    }\r\n\r\n    @GetMapping(\"/status/{status}\")\r\n    public ResponseEntity<List<ParcelResponse>> getParcelsByStatus(@PathVariable ParcelStatus status) {\r\n        List<ParcelResponse> parcels = parcelService.getParcelsByStatus(status);\r\n        return ResponseEntity.ok(parcels);\r\n    }\r\n\r\n    @GetMapping(\"/{parcelId}/owner\")\r\n    public ResponseEntity<UUID> getParcelOwner(@PathVariable String parcelId) {\r\n        UUID ownerId = parcelService.getParcelOwner(parcelId);\r\n        return ResponseEntity.ok(ownerId);\r\n    }\r\n  @GetMapping(\"/available\")\r\n  public ResponseEntity<List<ParcelResponse>> getAvailableParcels(\r\n    @RequestParam UUID sourceAgencyId,\r\n    @RequestParam UUID destAgencyId) {\r\n    List<ParcelResponse> parcels = parcelService.getAvailableParcels(sourceAgencyId, destAgencyId);\r\n    return ResponseEntity.ok(parcels);\r\n  }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java b/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java
+--- a/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/ParcelService/src/main/java/com/example/logistics_tracking/controller/ParcelController.java	(date 1777010652941)
+@@ -1,5 +1,7 @@
+ package com.example.logistics_tracking.controller;
+ 
++import com.example.logistics_tracking.dto.ParcelQuoteRequest;
++import com.example.logistics_tracking.dto.ParcelQuoteResponse;
+ import com.example.logistics_tracking.dto.ParcelRequest;
+ import com.example.logistics_tracking.dto.ParcelResponse;
+ import com.example.logistics_tracking.enums.ParcelStatus;
+@@ -19,6 +21,11 @@
+ 
+     private final ParcelService parcelService;
+ 
++    @GetMapping
++    public ResponseEntity<List<ParcelResponse>> getAllParcels() {
++        return ResponseEntity.ok(parcelService.getAllParcels());
++    }
++
+     @PostMapping
+     public ResponseEntity<ParcelResponse> createParcel(@Valid @RequestBody ParcelRequest request) {
+         ParcelResponse response = parcelService.createParcel(request);
+@@ -55,4 +62,15 @@
+     List<ParcelResponse> parcels = parcelService.getAvailableParcels(sourceAgencyId, destAgencyId);
+     return ResponseEntity.ok(parcels);
+   }
++
++  @PostMapping("/quote")
++  public ResponseEntity<ParcelQuoteResponse> getQuote(@Valid @RequestBody ParcelQuoteRequest request) {
++    return ResponseEntity.ok(parcelService.getQuote(request));
++  }
++
++  @PostMapping("/{parcelId}/cancel")
++  public ResponseEntity<Void> cancelParcel(@PathVariable String parcelId) {
++      parcelService.cancelParcel(parcelId);
++      return ResponseEntity.ok().build();
++  }
+ }
+Index: UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.usermanagementservice.controller;\r\n\r\nimport com.example.usermanagementservice.dto.*;\r\nimport com.example.usermanagementservice.enums.Role;\r\nimport com.example.usermanagementservice.service.UserService;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.slf4j.Logger;\r\nimport org.slf4j.LoggerFactory;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.web.bind.annotation.*;\r\n\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.UUID;\r\n\r\n@RestController\r\n@RequestMapping(\"/logistics/api/v1/users\")\r\n@RequiredArgsConstructor\r\npublic class UserController {\r\n\r\n    private final UserService userService;\r\n    private final Logger logger = LoggerFactory.getLogger(getClass());\r\n\r\n    @GetMapping(\"/{userId}/contact\")\r\n    public ResponseEntity<?> getUserContact(@PathVariable UUID userId) {\r\n        try {\r\n            UserContactResponse contact = userService.getUserContactById(userId);\r\n            return ResponseEntity.ok(contact);\r\n        } catch (RuntimeException e) {\r\n            logger.warn(\"Contact lookup failed for userId={}: {}\", userId, e.getMessage());\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(\r\n                    \"errorCode\", \"USER_NOT_FOUND\",\r\n                    \"message\", \"User with ID \" + userId + \" not found\"\r\n            ));\r\n        } catch (Exception e) {\r\n            logger.error(\"Unexpected error for userId={}: {}\", userId, e.getMessage());\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(\r\n                    \"errorCode\", \"INTERNAL_SERVER_ERROR\",\r\n                    \"message\", \"An unexpected error occurred\"\r\n            ));\r\n        }\r\n    }\r\n\r\n    @GetMapping(\"/{userId}\")\r\n    public ResponseEntity<?> getUserById(@PathVariable UUID userId) {\r\n        try {\r\n            UserResponse user = userService.getUserById(userId);\r\n            return ResponseEntity.ok(user);\r\n        } catch (RuntimeException e) {\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(\r\n                    \"errorCode\", \"USER_NOT_FOUND\",\r\n                    \"message\", \"User with ID \" + userId + \" not found\"\r\n            ));\r\n        } catch (Exception e) {\r\n            logger.error(\"Unexpected error for userId={}: {}\", userId, e.getMessage());\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(\r\n                    \"errorCode\", \"INTERNAL_SERVER_ERROR\",\r\n                    \"message\", \"An unexpected error occurred\"\r\n            ));\r\n        }\r\n    }\r\n\r\n    @PutMapping(\"/{userId}\")\r\n    public ResponseEntity<?> updateUser(@PathVariable UUID userId,\r\n                                        @RequestBody UpdateUserRequest request) {\r\n        try {\r\n            UserResponse updated = userService.updateUser(userId, request);\r\n            return ResponseEntity.ok(updated);\r\n        } catch (RuntimeException e) {\r\n            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(\r\n                    \"errorCode\", \"UPDATE_FAILED\",\r\n                    \"message\", e.getMessage()\r\n            ));\r\n        } catch (Exception e) {\r\n            logger.error(\"Unexpected error updating userId={}: {}\", userId, e.getMessage());\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(\r\n                    \"errorCode\", \"INTERNAL_SERVER_ERROR\",\r\n                    \"message\", \"An unexpected error occurred\"\r\n            ));\r\n        }\r\n    }\r\n\r\n    @PutMapping(\"/{userId}/password\")\r\n    public ResponseEntity<?> changePassword(@PathVariable UUID userId,\r\n                                            @RequestBody ChangePasswordRequest request) {\r\n        try {\r\n            userService.changePassword(userId, request);\r\n            return ResponseEntity.ok(Map.of(\r\n                    \"message\", \"Password changed successfully\"\r\n            ));\r\n        } catch (RuntimeException e) {\r\n            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(\r\n                    \"errorCode\", \"PASSWORD_CHANGE_FAILED\",\r\n                    \"message\", e.getMessage()\r\n            ));\r\n        } catch (Exception e) {\r\n            logger.error(\"Unexpected error changing password for userId={}: {}\", userId, e.getMessage());\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(\r\n                    \"errorCode\", \"INTERNAL_SERVER_ERROR\",\r\n                    \"message\", \"An unexpected error occurred\"\r\n            ));\r\n        }\r\n    }\r\n\r\n    @DeleteMapping(\"/{userId}\")\r\n    public ResponseEntity<?> deleteUser(@PathVariable UUID userId) {\r\n        try {\r\n            userService.softDeleteUser(userId);\r\n            return ResponseEntity.ok(Map.of(\r\n                    \"message\", \"Account deleted successfully\"\r\n            ));\r\n        } catch (RuntimeException e) {\r\n            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(\r\n                    \"errorCode\", \"USER_NOT_FOUND\",\r\n                    \"message\", \"User with ID \" + userId + \" not found\"\r\n            ));\r\n        } catch (Exception e) {\r\n            logger.error(\"Unexpected error deleting userId={}: {}\", userId, e.getMessage());\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(\r\n                    \"errorCode\", \"INTERNAL_SERVER_ERROR\",\r\n                    \"message\", \"An unexpected error occurred\"\r\n            ));\r\n        }\r\n    }\r\n\r\n    @GetMapping\r\n    public ResponseEntity<?> getAllUsers() {\r\n        try {\r\n            List<UserResponse> users = userService.getAllUsers();\r\n            return ResponseEntity.ok(users);\r\n        } catch (Exception e) {\r\n            logger.error(\"Unexpected error fetching all users: {}\", e.getMessage());\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(\r\n                    \"errorCode\", \"INTERNAL_SERVER_ERROR\",\r\n                    \"message\", \"An unexpected error occurred\"\r\n            ));\r\n        }\r\n    }\r\n\r\n    @GetMapping(\"/role/{role}\")\r\n    public ResponseEntity<?> getUsersByRole(@PathVariable Role role) {\r\n        try {\r\n            List<UserResponse> users = userService.getUsersByRole(role);\r\n            return ResponseEntity.ok(users);\r\n        } catch (Exception e) {\r\n            logger.error(\"Unexpected error fetching users by role={}: {}\", role, e.getMessage());\r\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(\r\n                    \"errorCode\", \"INTERNAL_SERVER_ERROR\",\r\n                    \"message\", \"An unexpected error occurred\"\r\n            ));\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java b/UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java
+--- a/UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/UserManagementService/src/main/java/com/example/usermanagementservice/controller/UserController.java	(date 1777010653134)
+@@ -151,4 +151,20 @@
+             ));
+         }
+     }
++
++    @PatchMapping("/{userId}/verify")
++    public ResponseEntity<?> verifyUser(@PathVariable UUID userId,
++                                        @RequestParam com.example.usermanagementservice.enums.VerificationStatus status) {
++        try {
++            userService.verifyUser(userId, status);
++            return ResponseEntity.ok(Map.of(
++                    "message", "User verification status updated successfully"
++            ));
++        } catch (Exception e) {
++            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
++                    "errorCode", "VERIFICATION_FAILED",
++                    "message", e.getMessage()
++            ));
++        }
++    }
+ }
+\ No newline at end of file
+Index: DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.deliveryservice.dto;\r\n\r\nimport com.example.deliveryservice.enums.TripStatus;\r\nimport lombok.*;\r\n\r\nimport java.time.Instant;\r\nimport java.util.List;\r\nimport java.util.UUID;\r\n\r\n@Data\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\npublic class TripResponse {\r\n\r\n    private UUID id;\r\n    private String driverId;\r\n    private UUID sourceAgencyId;\r\n    private UUID destAgencyId;\r\n    private Double totalDistanceKm;\r\n    private Integer segmentCount;\r\n    private TripStatus status;\r\n    private List<SegmentResponse> segments;\r\n    private List<double[]> fullPath;\r\n    private Integer parcelsCount;\r\n    private Instant startedAt;\r\n    private Instant createdAt;\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java b/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java
+--- a/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/DeliveryService/src/main/java/com/example/deliveryservice/dto/TripResponse.java	(date 1777010652964)
+@@ -16,7 +16,9 @@
+     private UUID id;
+     private String driverId;
+     private UUID sourceAgencyId;
++    private String sourceAgencyName;
+     private UUID destAgencyId;
++    private String destAgencyName;
+     private Double totalDistanceKm;
+     private Integer segmentCount;
+     private TripStatus status;
+Index: ParcelService/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n\txsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n\t<modelVersion>4.0.0</modelVersion>\r\n\t<parent>\r\n\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t<artifactId>spring-boot-starter-parent</artifactId>\r\n\t\t<version>4.0.5</version>\r\n\t\t<relativePath/> <!-- lookup parent from repository -->\r\n\t</parent>\r\n\t<groupId>com.example</groupId>\r\n\t<artifactId>Logistics_Tracking</artifactId>\r\n\t<version>0.0.1-SNAPSHOT</version>\r\n\t<name>Logistics_Tracking</name>\r\n\t<description>Logistics_Tracking</description>\r\n\t<url/>\r\n\t<licenses>\r\n\t\t<license/>\r\n\t</licenses>\r\n\t<developers>\r\n\t\t<developer/>\r\n\t</developers>\r\n\t<scm>\r\n\t\t<connection/>\r\n\t\t<developerConnection/>\r\n\t\t<tag/>\r\n\t\t<url/>\r\n\t</scm>\r\n\t<properties>\r\n\t\t<java.version>21</java.version>\r\n\t\t<spring-cloud.version>2025.1.1</spring-cloud.version>\r\n\t</properties>\r\n\r\n\t<dependencyManagement>\r\n\t\t<dependencies>\r\n\t\t\t<dependency>\r\n\t\t\t\t<groupId>org.springframework.cloud</groupId>\r\n\t\t\t\t<artifactId>spring-cloud-dependencies</artifactId>\r\n\t\t\t\t<version>${spring-cloud.version}</version>\r\n\t\t\t\t<type>pom</type>\r\n\t\t\t\t<scope>import</scope>\r\n\t\t\t</dependency>\r\n\t\t</dependencies>\r\n\t</dependencyManagement>\r\n\t<dependencies>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-test</artifactId>\r\n\t\t\t<scope>test</scope>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Spring Boot Web -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-web</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Spring Data JPA -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-data-jpa</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- MySQL Driver -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.mysql</groupId>\r\n\t\t\t<artifactId>mysql-connector-j</artifactId>\r\n\t\t\t<scope>runtime</scope>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.cloud</groupId>\r\n\t\t\t<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.cloud</groupId>\r\n\t\t\t<artifactId>spring-cloud-starter-openfeign</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Kafka -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.kafka</groupId>\r\n\t\t\t<artifactId>spring-kafka</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Lombok -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.projectlombok</groupId>\r\n\t\t\t<artifactId>lombok</artifactId>\r\n\t\t\t<optional>true</optional>\r\n\t\t</dependency>\r\n\r\n\t\t<!-- Validation -->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-validation</artifactId>\r\n\t\t</dependency>\r\n\r\n\r\n\t</dependencies>\r\n\r\n\t<build>\r\n\t\t<plugins>\r\n\t\t\t<plugin>\r\n\t\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t\t<artifactId>spring-boot-maven-plugin</artifactId>\r\n\t\t\t</plugin>\r\n\t\t</plugins>\r\n\t</build>\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/ParcelService/pom.xml b/ParcelService/pom.xml
+--- a/ParcelService/pom.xml	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/ParcelService/pom.xml	(date 1777010668407)
+@@ -110,6 +110,27 @@
+ 			<plugin>
+ 				<groupId>org.springframework.boot</groupId>
+ 				<artifactId>spring-boot-maven-plugin</artifactId>
++				<configuration>
++					<excludes>
++						<exclude>
++							<groupId>org.projectlombok</groupId>
++							<artifactId>lombok</artifactId>
++						</exclude>
++					</excludes>
++				</configuration>
++			</plugin>
++			<plugin>
++				<groupId>org.apache.maven.plugins</groupId>
++				<artifactId>maven-compiler-plugin</artifactId>
++				<configuration>
++					<annotationProcessorPaths>
++						<path>
++							<groupId>org.projectlombok</groupId>
++							<artifactId>lombok</artifactId>
++							<version>${lombok.version}</version>
++						</path>
++					</annotationProcessorPaths>
++				</configuration>
+ 			</plugin>
+ 		</plugins>
+ 	</build>
+Index: DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.deliveryservice.service;\r\n\r\nimport com.example.deliveryservice.client.ParcelServiceClient;\r\nimport com.example.deliveryservice.dto.*;\r\nimport com.example.deliveryservice.entity.DriverTrip;\r\nimport com.example.deliveryservice.entity.TripParcel;\r\nimport com.example.deliveryservice.entity.TripSegment;\r\nimport com.example.deliveryservice.enums.SegmentStatus;\r\nimport com.example.deliveryservice.enums.TripParcelStatus;\r\nimport com.example.deliveryservice.enums.TripStatus;\r\nimport com.example.deliveryservice.dto.TripRequest;\r\nimport com.example.deliveryservice.event.SegmentReachedEvent;\r\nimport com.example.deliveryservice.event.TripCompletedEvent;\r\nimport com.example.deliveryservice.exception.BusinessException;\r\nimport com.example.deliveryservice.repository.DriverTripRepository;\r\nimport com.example.deliveryservice.repository.TripParcelRepository;\r\nimport com.example.deliveryservice.repository.TripSegmentRepository;\r\nimport com.example.deliveryservice.service.OsrmService.OsrmRouteResult;\r\nimport lombok.RequiredArgsConstructor;\r\nimport lombok.extern.slf4j.Slf4j;\r\nimport org.springframework.stereotype.Service;\r\nimport org.springframework.transaction.annotation.Transactional;\r\nimport org.springframework.web.client.RestTemplate;\r\n\r\nimport java.time.Instant;\r\nimport java.util.*;\r\nimport java.util.stream.Collectors;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\n@Slf4j\r\npublic class TripService {\r\n\r\n    private final DriverTripRepository tripRepository;\r\n    private final TripSegmentRepository segmentRepository;\r\n    private final TripParcelRepository tripParcelRepository;\r\n    private final OsrmService osrmService;\r\n    private final KafkaEventPublisher kafkaEventPublisher;\r\n    private final ParcelServiceClient parcelServiceClient;\r\n\r\n    @Transactional\r\n    public TripResponse createTrip(TripRequest request) {\r\n        AgencyCoordinatesResponse sourceCoords =\r\n                parcelServiceClient.getAgencyCoordinates(request.getSourceAgencyId());\r\n        AgencyCoordinatesResponse destCoords =\r\n                parcelServiceClient.getAgencyCoordinates(request.getDestAgencyId());\r\n\r\n        OsrmRouteResult route = osrmService.calculateRoute(\r\n                sourceCoords.getLatitude(), sourceCoords.getLongitude(),\r\n                destCoords.getLatitude(), destCoords.getLongitude()\r\n        );\r\n\r\n        DriverTrip trip = DriverTrip.builder()\r\n                .driverId(request.getDriverId())\r\n                .sourceAgencyId(request.getSourceAgencyId())\r\n                .destAgencyId(request.getDestAgencyId())\r\n                .sourceLatitude(sourceCoords.getLatitude())\r\n                .sourceLongitude(sourceCoords.getLongitude())\r\n                .destLatitude(destCoords.getLatitude())\r\n                .destLongitude(destCoords.getLongitude())\r\n                .totalDistanceKm(route.totalDistanceKm())\r\n                .segmentCount(route.segmentCount())\r\n                .fullPath(route.fullPath())\r\n                .status(TripStatus.COLLECTING)\r\n                .build();\r\n\r\n        DriverTrip savedTrip = tripRepository.save(trip);\r\n\r\n        List<TripSegment> segments = buildSegments(savedTrip, route);\r\n        segmentRepository.saveAll(segments);\r\n        savedTrip.setSegments(segments);\r\n\r\n        log.info(\"Trip created: id={}, distance={}km, segments={}\",\r\n                savedTrip.getId(), route.totalDistanceKm(), route.segmentCount());\r\n\r\n        return mapToResponse(savedTrip);\r\n    }\r\n\r\n    @Transactional\r\n    public void assignParcels(UUID tripId, List<String> parcelIds) {\r\n        DriverTrip trip = findTripById(tripId);\r\n\r\n        if (!trip.getStatus().canAcceptParcels()) {\r\n            throw BusinessException.tripNotInCorrectStatus(\"COLLECTING\");\r\n        }\r\n\r\n        for (String parcelId : parcelIds) {\r\n            if (tripParcelRepository.existsByParcelIdAndStatus(parcelId, TripParcelStatus.ASSIGNED)) {\r\n                throw BusinessException.parcelAlreadyAssigned(parcelId);\r\n            }\r\n\r\n            TripParcel tripParcel = TripParcel.builder()\r\n                    .trip(trip)\r\n                    .parcelId(parcelId)\r\n                    .status(TripParcelStatus.ASSIGNED)\r\n                    .build();\r\n\r\n            tripParcelRepository.save(tripParcel);\r\n        }\r\n\r\n        log.info(\"Assigned {} parcels to trip {}\", parcelIds.size(), tripId);\r\n    }\r\n\r\n    @Transactional\r\n    public TripResponse startTrip(UUID tripId) {\r\n        DriverTrip trip = findTripById(tripId);\r\n\r\n        if (!trip.getStatus().canStart()) {\r\n            throw BusinessException.tripNotInCorrectStatus(\"COLLECTING\");\r\n        }\r\n\r\n        trip.setStatus(TripStatus.ACTIVE);\r\n        trip.setStartedAt(Instant.now());\r\n        DriverTrip savedTrip = tripRepository.save(trip);\r\n\r\n        log.info(\"Trip started: id={}\", tripId);\r\n\r\n        return mapToResponse(savedTrip);\r\n    }\r\n\r\n    @Transactional\r\n    public TripResponse markSegmentReached(UUID tripId, UUID segmentId) {\r\n        DriverTrip trip = findTripById(tripId);\r\n\r\n        if (!trip.getStatus().isActive()) {\r\n            throw BusinessException.tripNotInCorrectStatus(\"ACTIVE\");\r\n        }\r\n\r\n        TripSegment segment = segmentRepository.findById(segmentId)\r\n                .orElseThrow(() -> BusinessException.segmentNotFound(segmentId));\r\n\r\n        if (segment.getStatus() == SegmentStatus.REACHED) {\r\n            throw BusinessException.segmentAlreadyReached(segmentId);\r\n        }\r\n\r\n        segment.setStatus(SegmentStatus.REACHED);\r\n        segment.setReachedAt(Instant.now());\r\n        segmentRepository.save(segment);\r\n\r\n        List<String> parcelIds = tripParcelRepository.findByTripIdAndStatus(tripId, TripParcelStatus.ASSIGNED)\r\n                .stream()\r\n                .map(TripParcel::getParcelId)\r\n                .collect(Collectors.toList());\r\n\r\n        double distanceTraveled = segment.getDistanceFromStartKm();\r\n        double distanceRemaining = trip.getTotalDistanceKm() - distanceTraveled;\r\n\r\n        publishSegmentReachedEvent(trip, segment, parcelIds, distanceTraveled, distanceRemaining);\r\n\r\n        boolean isLastSegment = segment.getSegmentOrder().equals(trip.getSegmentCount());\r\n        if (isLastSegment) {\r\n            completeTrip(trip, parcelIds);\r\n        }\r\n\r\n        log.info(\"Segment reached: tripId={}, segment={}/{}\",\r\n                tripId, segment.getSegmentOrder(), trip.getSegmentCount());\r\n\r\n        return mapToResponse(tripRepository.findById(tripId).orElseThrow());\r\n    }\r\n\r\n    @Transactional(readOnly = true)\r\n    public TripResponse getTrip(UUID tripId) {\r\n        return mapToResponse(findTripById(tripId));\r\n    }\r\n\r\n\r\n  @Transactional(readOnly = true)\r\n  public List<AvailableParcelResponse> getAvailableParcels(UUID tripId) {\r\n    DriverTrip trip = findTripById(tripId);\r\n\r\n    if (!trip.getStatus().canAcceptParcels()) {\r\n      throw BusinessException.tripNotInCorrectStatus(\"COLLECTING\");\r\n    }\r\n\r\n    try {\r\n      return parcelServiceClient.getAvailableParcels(\r\n        trip.getSourceAgencyId(),\r\n        trip.getDestAgencyId()\r\n      );\r\n    } catch (Exception e) {\r\n      log.error(\"Failed to fetch available parcels: {}\", e.getMessage());\r\n      return Collections.emptyList();\r\n    }\r\n  }\r\n\r\n    private void completeTrip(DriverTrip trip, List<String> parcelIds) {\r\n        trip.setStatus(TripStatus.COMPLETED);\r\n        trip.setCompletedAt(Instant.now());\r\n\r\n        tripParcelRepository.findByTripIdAndStatus(trip.getId(), TripParcelStatus.ASSIGNED)\r\n                .forEach(tp -> {\r\n                    tp.setStatus(TripParcelStatus.DELIVERED);\r\n                    tp.setDeliveredAt(Instant.now());\r\n                    tripParcelRepository.save(tp);\r\n                });\r\n\r\n        tripRepository.save(trip);\r\n\r\n        TripCompletedEvent event = TripCompletedEvent.builder()\r\n                .eventId(UUID.randomUUID().toString())\r\n                .eventType(\"TripCompleted\")\r\n                .timestamp(Instant.now())\r\n                .tripId(trip.getId())\r\n                .driverId(trip.getDriverId())\r\n                .sourceAgencyId(trip.getSourceAgencyId())\r\n                .destAgencyId(trip.getDestAgencyId())\r\n                .totalDistanceKm(trip.getTotalDistanceKm())\r\n                .parcelIds(parcelIds)\r\n                .completedAt(trip.getCompletedAt())\r\n                .build();\r\n\r\n        kafkaEventPublisher.publishTripCompleted(event);\r\n\r\n        log.info(\"Trip completed: id={}, parcels delivered={}\", trip.getId(), parcelIds.size());\r\n    }\r\n\r\n    private void publishSegmentReachedEvent(DriverTrip trip, TripSegment segment,\r\n                                            List<String> parcelIds,\r\n                                            double distanceTraveled, double distanceRemaining) {\r\n        SegmentReachedEvent event = SegmentReachedEvent.builder()\r\n                .eventId(UUID.randomUUID().toString())\r\n                .eventType(\"SegmentReached\")\r\n                .timestamp(Instant.now())\r\n                .tripId(trip.getId())\r\n                .segmentId(segment.getId())\r\n                .driverId(trip.getDriverId())\r\n                .segmentOrder(segment.getSegmentOrder())\r\n                .totalSegments(trip.getSegmentCount())\r\n                .latitude(segment.getLatitude())\r\n                .longitude(segment.getLongitude())\r\n                .distanceTraveledKm(distanceTraveled)\r\n                .distanceRemainingKm(distanceRemaining)\r\n                .parcelIds(parcelIds)\r\n                .build();\r\n\r\n        kafkaEventPublisher.publishSegmentReached(event);\r\n    }\r\n\r\n    private List<TripSegment> buildSegments(DriverTrip trip, OsrmRouteResult route) {\r\n        List<TripSegment> segments = new ArrayList<>();\r\n        List<double[]> checkpoints = route.checkpoints();\r\n\r\n        // Cumulative distances for each checkpoint\r\n        double[] cumDistances = buildCumulativeDistances(checkpoints);\r\n\r\n        for (int i = 0; i < checkpoints.size(); i++) {\r\n            double[] point = checkpoints.get(i);\r\n            TripSegment segment = TripSegment.builder()\r\n                    .trip(trip)\r\n                    .segmentOrder(i + 1)\r\n                    .latitude(point[0])\r\n                    .longitude(point[1])\r\n                    .distanceFromStartKm(cumDistances[i] / 1000.0)\r\n                    .status(SegmentStatus.PENDING)\r\n                    .build();\r\n            segments.add(segment);\r\n        }\r\n\r\n        return segments;\r\n    }\r\n\r\n    private double[] buildCumulativeDistances(List<double[]> checkpoints) {\r\n        double[] cumDist = new double[checkpoints.size()];\r\n        cumDist[0] = 0;\r\n        for (int i = 1; i < checkpoints.size(); i++) {\r\n            double dLat = Math.toRadians(checkpoints.get(i)[0] - checkpoints.get(i - 1)[0]);\r\n            double dLng = Math.toRadians(checkpoints.get(i)[1] - checkpoints.get(i - 1)[1]);\r\n            double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)\r\n                    + Math.cos(Math.toRadians(checkpoints.get(i - 1)[0]))\r\n                    * Math.cos(Math.toRadians(checkpoints.get(i)[0]))\r\n                    * Math.sin(dLng / 2) * Math.sin(dLng / 2);\r\n            cumDist[i] = cumDist[i - 1] + 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\r\n        }\r\n        return cumDist;\r\n    }\r\n\r\n    private DriverTrip findTripById(UUID tripId) {\r\n        return tripRepository.findById(tripId)\r\n                .orElseThrow(() -> BusinessException.tripNotFound(tripId));\r\n    }\r\n\r\n    private TripResponse mapToResponse(DriverTrip trip) {\r\n        List<SegmentResponse> segmentResponses = segmentRepository\r\n                .findByTripIdOrderBySegmentOrderAsc(trip.getId())\r\n                .stream()\r\n                .map(s -> SegmentResponse.builder()\r\n                        .id(s.getId())\r\n                        .segmentOrder(s.getSegmentOrder())\r\n                        .latitude(s.getLatitude())\r\n                        .longitude(s.getLongitude())\r\n                        .distanceFromStartKm(s.getDistanceFromStartKm())\r\n                        .status(s.getStatus())\r\n                        .reachedAt(s.getReachedAt())\r\n                        .build())\r\n                .collect(Collectors.toList());\r\n\r\n        int parcelsCount = tripParcelRepository.findByTripId(trip.getId()).size();\r\n\r\n        return TripResponse.builder()\r\n                .id(trip.getId())\r\n                .driverId(trip.getDriverId())\r\n                .sourceAgencyId(trip.getSourceAgencyId())\r\n                .destAgencyId(trip.getDestAgencyId())\r\n                .totalDistanceKm(trip.getTotalDistanceKm())\r\n                .segmentCount(trip.getSegmentCount())\r\n                .status(trip.getStatus())\r\n                .segments(segmentResponses)\r\n                .parcelsCount(parcelsCount)\r\n                .fullPath(trip.getFullPath())\r\n                .startedAt(trip.getStartedAt())\r\n                .createdAt(trip.getCreatedAt())\r\n                .build();\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java b/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java
+--- a/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/DeliveryService/src/main/java/com/example/deliveryservice/service/TripService.java	(date 1777010652894)
+@@ -11,6 +11,7 @@
+ import com.example.deliveryservice.dto.TripRequest;
+ import com.example.deliveryservice.event.SegmentReachedEvent;
+ import com.example.deliveryservice.event.TripCompletedEvent;
++import com.example.deliveryservice.event.TripStartedEvent;
+ import com.example.deliveryservice.exception.BusinessException;
+ import com.example.deliveryservice.repository.DriverTripRepository;
+ import com.example.deliveryservice.repository.TripParcelRepository;
+@@ -31,284 +32,336 @@
+ @Slf4j
+ public class TripService {
+ 
+-    private final DriverTripRepository tripRepository;
+-    private final TripSegmentRepository segmentRepository;
+-    private final TripParcelRepository tripParcelRepository;
+-    private final OsrmService osrmService;
+-    private final KafkaEventPublisher kafkaEventPublisher;
+-    private final ParcelServiceClient parcelServiceClient;
++        private final DriverTripRepository tripRepository;
++        private final TripSegmentRepository segmentRepository;
++        private final TripParcelRepository tripParcelRepository;
++        private final OsrmService osrmService;
++        private final KafkaEventPublisher kafkaEventPublisher;
++        private final ParcelServiceClient parcelServiceClient;
+ 
+-    @Transactional
+-    public TripResponse createTrip(TripRequest request) {
+-        AgencyCoordinatesResponse sourceCoords =
+-                parcelServiceClient.getAgencyCoordinates(request.getSourceAgencyId());
+-        AgencyCoordinatesResponse destCoords =
+-                parcelServiceClient.getAgencyCoordinates(request.getDestAgencyId());
++        @Transactional(readOnly = true)
++        public List<TripResponse> getTripsByAgent(String agentId, TripStatus status) {
++                List<DriverTrip> trips = (status != null)
++                                ? tripRepository.findByDriverIdAndStatus(agentId, status)
++                                : tripRepository.findByDriverId(agentId);
++                return trips.stream().map(this::mapToResponse).collect(Collectors.toList());
++        }
++
++        @Transactional
++        public TripResponse createTrip(TripRequest request) {
++                AgencyCoordinatesResponse sourceCoords = parcelServiceClient
++                                .getAgencyCoordinates(request.getSourceAgencyId());
++                AgencyCoordinatesResponse destCoords = parcelServiceClient
++                                .getAgencyCoordinates(request.getDestAgencyId());
+ 
+-        OsrmRouteResult route = osrmService.calculateRoute(
+-                sourceCoords.getLatitude(), sourceCoords.getLongitude(),
+-                destCoords.getLatitude(), destCoords.getLongitude()
+-        );
++                OsrmRouteResult route = osrmService.calculateRoute(
++                                sourceCoords.getLatitude(), sourceCoords.getLongitude(),
++                                destCoords.getLatitude(), destCoords.getLongitude());
+ 
+-        DriverTrip trip = DriverTrip.builder()
+-                .driverId(request.getDriverId())
+-                .sourceAgencyId(request.getSourceAgencyId())
+-                .destAgencyId(request.getDestAgencyId())
+-                .sourceLatitude(sourceCoords.getLatitude())
+-                .sourceLongitude(sourceCoords.getLongitude())
+-                .destLatitude(destCoords.getLatitude())
+-                .destLongitude(destCoords.getLongitude())
+-                .totalDistanceKm(route.totalDistanceKm())
+-                .segmentCount(route.segmentCount())
+-                .fullPath(route.fullPath())
+-                .status(TripStatus.COLLECTING)
+-                .build();
++                DriverTrip trip = DriverTrip.builder()
++                                .driverId(request.getDriverId())
++                                .sourceAgencyId(request.getSourceAgencyId())
++                                .sourceAgencyName(request.getSourceAgencyName())
++                                .destAgencyId(request.getDestAgencyId())
++                                .destAgencyName(request.getDestAgencyName())
++                                .sourceLatitude(sourceCoords.getLatitude())
++                                .sourceLongitude(sourceCoords.getLongitude())
++                                .destLatitude(destCoords.getLatitude())
++                                .destLongitude(destCoords.getLongitude())
++                                .totalDistanceKm(route.totalDistanceKm())
++                                .segmentCount(route.segmentCount())
++                                .fullPath(route.fullPath())
++                                .status(TripStatus.COLLECTING)
++                                .build();
+ 
+-        DriverTrip savedTrip = tripRepository.save(trip);
++                DriverTrip savedTrip = tripRepository.save(trip);
+ 
+-        List<TripSegment> segments = buildSegments(savedTrip, route);
+-        segmentRepository.saveAll(segments);
+-        savedTrip.setSegments(segments);
++                List<TripSegment> segments = buildSegments(savedTrip, route);
++                segmentRepository.saveAll(segments);
++                savedTrip.setSegments(segments);
+ 
+-        log.info("Trip created: id={}, distance={}km, segments={}",
+-                savedTrip.getId(), route.totalDistanceKm(), route.segmentCount());
++                log.info("Trip created: id={}, distance={}km, segments={}",
++                                savedTrip.getId(), route.totalDistanceKm(), route.segmentCount());
+ 
+-        return mapToResponse(savedTrip);
+-    }
++                return mapToResponse(savedTrip);
++        }
+ 
+-    @Transactional
+-    public void assignParcels(UUID tripId, List<String> parcelIds) {
+-        DriverTrip trip = findTripById(tripId);
++        @Transactional
++        public void assignParcels(UUID tripId, List<String> parcelIds) {
++                DriverTrip trip = findTripById(tripId);
+ 
+-        if (!trip.getStatus().canAcceptParcels()) {
+-            throw BusinessException.tripNotInCorrectStatus("COLLECTING");
+-        }
++                if (!trip.getStatus().canAcceptParcels()) {
++                        throw BusinessException.tripNotInCorrectStatus("COLLECTING");
++                }
+ 
+-        for (String parcelId : parcelIds) {
+-            if (tripParcelRepository.existsByParcelIdAndStatus(parcelId, TripParcelStatus.ASSIGNED)) {
+-                throw BusinessException.parcelAlreadyAssigned(parcelId);
+-            }
++                for (String parcelId : parcelIds) {
++                        if (tripParcelRepository.existsByParcelIdAndStatus(parcelId, TripParcelStatus.ASSIGNED)) {
++                                throw BusinessException.parcelAlreadyAssigned(parcelId);
++                        }
+ 
+-            TripParcel tripParcel = TripParcel.builder()
+-                    .trip(trip)
+-                    .parcelId(parcelId)
+-                    .status(TripParcelStatus.ASSIGNED)
+-                    .build();
++                        TripParcel tripParcel = TripParcel.builder()
++                                        .trip(trip)
++                                        .parcelId(parcelId)
++                                        .status(TripParcelStatus.ASSIGNED)
++                                        .build();
+ 
+-            tripParcelRepository.save(tripParcel);
+-        }
++                        tripParcelRepository.save(tripParcel);
++                }
+ 
+-        log.info("Assigned {} parcels to trip {}", parcelIds.size(), tripId);
+-    }
++                log.info("Assigned {} parcels to trip {}", parcelIds.size(), tripId);
++        }
+ 
+-    @Transactional
+-    public TripResponse startTrip(UUID tripId) {
+-        DriverTrip trip = findTripById(tripId);
++        @Transactional
++        public TripResponse startTrip(UUID tripId) {
++                DriverTrip trip = findTripById(tripId);
+ 
+-        if (!trip.getStatus().canStart()) {
+-            throw BusinessException.tripNotInCorrectStatus("COLLECTING");
+-        }
++                if (!trip.getStatus().canStart()) {
++                        throw BusinessException.tripNotInCorrectStatus("COLLECTING");
++                }
+ 
+-        trip.setStatus(TripStatus.ACTIVE);
+-        trip.setStartedAt(Instant.now());
+-        DriverTrip savedTrip = tripRepository.save(trip);
++                trip.setStatus(TripStatus.ACTIVE);
++                trip.setStartedAt(Instant.now());
++                DriverTrip savedTrip = tripRepository.save(trip);
+ 
+-        log.info("Trip started: id={}", tripId);
++                List<String> parcelIds = tripParcelRepository.findByTripIdAndStatus(tripId, TripParcelStatus.ASSIGNED)
++                                .stream()
++                                .map(TripParcel::getParcelId)
++                                .collect(Collectors.toList());
++
++                TripStartedEvent event = TripStartedEvent.builder()
++                                .eventId(UUID.randomUUID().toString())
++                                .eventType("TripStarted")
++                                .timestamp(Instant.now())
++                                .tripId(trip.getId())
++                                .driverId(trip.getDriverId())
++                                .sourceAgencyId(trip.getSourceAgencyId())
++                                .destAgencyId(trip.getDestAgencyId())
++                                .parcelIds(parcelIds)
++                                .startedAt(trip.getStartedAt())
++                                .build();
++
++                kafkaEventPublisher.publishTripStarted(event);
++
++                log.info("Trip started: id={}, parcels={}", tripId, parcelIds.size());
+ 
+-        return mapToResponse(savedTrip);
+-    }
++                return mapToResponse(savedTrip);
++        }
+ 
+-    @Transactional
+-    public TripResponse markSegmentReached(UUID tripId, UUID segmentId) {
+-        DriverTrip trip = findTripById(tripId);
++        @Transactional
++        public TripResponse markSegmentReached(UUID tripId, UUID segmentId) {
++                DriverTrip trip = findTripById(tripId);
+ 
+-        if (!trip.getStatus().isActive()) {
+-            throw BusinessException.tripNotInCorrectStatus("ACTIVE");
+-        }
++                if (!trip.getStatus().isActive()) {
++                        throw BusinessException.tripNotInCorrectStatus("ACTIVE");
++                }
+ 
+-        TripSegment segment = segmentRepository.findById(segmentId)
+-                .orElseThrow(() -> BusinessException.segmentNotFound(segmentId));
++                TripSegment segment = segmentRepository.findById(segmentId)
++                                .orElseThrow(() -> BusinessException.segmentNotFound(segmentId));
+ 
+-        if (segment.getStatus() == SegmentStatus.REACHED) {
+-            throw BusinessException.segmentAlreadyReached(segmentId);
+-        }
++                if (segment.getStatus() == SegmentStatus.REACHED) {
++                        throw BusinessException.segmentAlreadyReached(segmentId);
++                }
+ 
+-        segment.setStatus(SegmentStatus.REACHED);
+-        segment.setReachedAt(Instant.now());
+-        segmentRepository.save(segment);
++                segment.setStatus(SegmentStatus.REACHED);
++                segment.setReachedAt(Instant.now());
++                segmentRepository.save(segment);
+ 
+-        List<String> parcelIds = tripParcelRepository.findByTripIdAndStatus(tripId, TripParcelStatus.ASSIGNED)
+-                .stream()
+-                .map(TripParcel::getParcelId)
+-                .collect(Collectors.toList());
++                List<String> parcelIds = tripParcelRepository.findByTripIdAndStatus(tripId, TripParcelStatus.ASSIGNED)
++                                .stream()
++                                .map(TripParcel::getParcelId)
++                                .collect(Collectors.toList());
+ 
+-        double distanceTraveled = segment.getDistanceFromStartKm();
+-        double distanceRemaining = trip.getTotalDistanceKm() - distanceTraveled;
++                double distanceTraveled = segment.getDistanceFromStartKm();
++                double distanceRemaining = trip.getTotalDistanceKm() - distanceTraveled;
+ 
+-        publishSegmentReachedEvent(trip, segment, parcelIds, distanceTraveled, distanceRemaining);
++                publishSegmentReachedEvent(trip, segment, parcelIds, distanceTraveled, distanceRemaining);
+ 
+-        boolean isLastSegment = segment.getSegmentOrder().equals(trip.getSegmentCount());
+-        if (isLastSegment) {
+-            completeTrip(trip, parcelIds);
+-        }
++                boolean isLastSegment = segment.getSegmentOrder().equals(trip.getSegmentCount());
++                if (isLastSegment) {
++                        completeTrip(trip, parcelIds);
++                }
+ 
+-        log.info("Segment reached: tripId={}, segment={}/{}",
+-                tripId, segment.getSegmentOrder(), trip.getSegmentCount());
++                log.info("Segment reached: tripId={}, segment={}/{}",
++                                tripId, segment.getSegmentOrder(), trip.getSegmentCount());
+ 
+-        return mapToResponse(tripRepository.findById(tripId).orElseThrow());
+-    }
++                return mapToResponse(tripRepository.findById(tripId).orElseThrow());
++        }
+ 
+-    @Transactional(readOnly = true)
+-    public TripResponse getTrip(UUID tripId) {
+-        return mapToResponse(findTripById(tripId));
+-    }
++        @Transactional(readOnly = true)
++        public TripResponse getTrip(UUID tripId) {
++                return mapToResponse(findTripById(tripId));
++        }
+ 
+-
+-  @Transactional(readOnly = true)
+-  public List<AvailableParcelResponse> getAvailableParcels(UUID tripId) {
+-    DriverTrip trip = findTripById(tripId);
++        @Transactional(readOnly = true)
++        public List<AvailableParcelResponse> getAvailableParcels(UUID tripId) {
++                DriverTrip trip = findTripById(tripId);
+ 
+-    if (!trip.getStatus().canAcceptParcels()) {
+-      throw BusinessException.tripNotInCorrectStatus("COLLECTING");
+-    }
++                if (!trip.getStatus().canAcceptParcels()) {
++                        throw BusinessException.tripNotInCorrectStatus("COLLECTING");
++                }
+ 
+-    try {
+-      return parcelServiceClient.getAvailableParcels(
+-        trip.getSourceAgencyId(),
+-        trip.getDestAgencyId()
+-      );
+-    } catch (Exception e) {
+-      log.error("Failed to fetch available parcels: {}", e.getMessage());
+-      return Collections.emptyList();
+-    }
+-  }
++                try {
++                        return parcelServiceClient.getAvailableParcels(
++                                        trip.getSourceAgencyId(),
++                                        trip.getDestAgencyId());
++                } catch (Exception e) {
++                        log.error("Failed to fetch available parcels: {}", e.getMessage());
++                        return Collections.emptyList();
++                }
++        }
+ 
+-    private void completeTrip(DriverTrip trip, List<String> parcelIds) {
+-        trip.setStatus(TripStatus.COMPLETED);
+-        trip.setCompletedAt(Instant.now());
++        private void completeTrip(DriverTrip trip, List<String> parcelIds) {
++                trip.setStatus(TripStatus.COMPLETED);
++                trip.setCompletedAt(Instant.now());
+ 
+-        tripParcelRepository.findByTripIdAndStatus(trip.getId(), TripParcelStatus.ASSIGNED)
+-                .forEach(tp -> {
+-                    tp.setStatus(TripParcelStatus.DELIVERED);
+-                    tp.setDeliveredAt(Instant.now());
+-                    tripParcelRepository.save(tp);
+-                });
++                tripParcelRepository.findByTripIdAndStatus(trip.getId(), TripParcelStatus.ASSIGNED)
++                                .forEach(tp -> {
++                                        tp.setStatus(TripParcelStatus.DELIVERED);
++                                        tp.setDeliveredAt(Instant.now());
++                                        tripParcelRepository.save(tp);
++                                });
+ 
+-        tripRepository.save(trip);
++                tripRepository.save(trip);
+ 
+-        TripCompletedEvent event = TripCompletedEvent.builder()
+-                .eventId(UUID.randomUUID().toString())
+-                .eventType("TripCompleted")
+-                .timestamp(Instant.now())
+-                .tripId(trip.getId())
+-                .driverId(trip.getDriverId())
+-                .sourceAgencyId(trip.getSourceAgencyId())
+-                .destAgencyId(trip.getDestAgencyId())
+-                .totalDistanceKm(trip.getTotalDistanceKm())
+-                .parcelIds(parcelIds)
+-                .completedAt(trip.getCompletedAt())
+-                .build();
++                TripCompletedEvent event = TripCompletedEvent.builder()
++                                .eventId(UUID.randomUUID().toString())
++                                .eventType("TripCompleted")
++                                .timestamp(Instant.now())
++                                .tripId(trip.getId())
++                                .driverId(trip.getDriverId())
++                                .sourceAgencyId(trip.getSourceAgencyId())
++                                .destAgencyId(trip.getDestAgencyId())
++                                .totalDistanceKm(trip.getTotalDistanceKm())
++                                .parcelIds(parcelIds)
++                                .completedAt(trip.getCompletedAt())
++                                .build();
+ 
+-        kafkaEventPublisher.publishTripCompleted(event);
++                kafkaEventPublisher.publishTripCompleted(event);
+ 
+-        log.info("Trip completed: id={}, parcels delivered={}", trip.getId(), parcelIds.size());
+-    }
++                log.info("Trip completed: id={}, parcels delivered={}", trip.getId(), parcelIds.size());
++        }
+ 
+-    private void publishSegmentReachedEvent(DriverTrip trip, TripSegment segment,
+-                                            List<String> parcelIds,
+-                                            double distanceTraveled, double distanceRemaining) {
+-        SegmentReachedEvent event = SegmentReachedEvent.builder()
+-                .eventId(UUID.randomUUID().toString())
+-                .eventType("SegmentReached")
+-                .timestamp(Instant.now())
+-                .tripId(trip.getId())
+-                .segmentId(segment.getId())
+-                .driverId(trip.getDriverId())
+-                .segmentOrder(segment.getSegmentOrder())
+-                .totalSegments(trip.getSegmentCount())
+-                .latitude(segment.getLatitude())
+-                .longitude(segment.getLongitude())
+-                .distanceTraveledKm(distanceTraveled)
+-                .distanceRemainingKm(distanceRemaining)
+-                .parcelIds(parcelIds)
+-                .build();
++        private void publishSegmentReachedEvent(DriverTrip trip, TripSegment segment,
++                        List<String> parcelIds,
++                        double distanceTraveled, double distanceRemaining) {
++                SegmentReachedEvent event = SegmentReachedEvent.builder()
++                                .eventId(UUID.randomUUID().toString())
++                                .eventType("SegmentReached")
++                                .timestamp(Instant.now())
++                                .tripId(trip.getId())
++                                .segmentId(segment.getId())
++                                .driverId(trip.getDriverId())
++                                .segmentOrder(segment.getSegmentOrder())
++                                .totalSegments(trip.getSegmentCount())
++                                .latitude(segment.getLatitude())
++                                .longitude(segment.getLongitude())
++                                .distanceTraveledKm(distanceTraveled)
++                                .distanceRemainingKm(distanceRemaining)
++                                .parcelIds(parcelIds)
++                                .build();
+ 
+-        kafkaEventPublisher.publishSegmentReached(event);
+-    }
++                kafkaEventPublisher.publishSegmentReached(event);
++        }
+ 
+-    private List<TripSegment> buildSegments(DriverTrip trip, OsrmRouteResult route) {
+-        List<TripSegment> segments = new ArrayList<>();
+-        List<double[]> checkpoints = route.checkpoints();
++        private List<TripSegment> buildSegments(DriverTrip trip, OsrmRouteResult route) {
++                List<TripSegment> segments = new ArrayList<>();
++                List<double[]> checkpoints = route.checkpoints();
+ 
+-        // Cumulative distances for each checkpoint
+-        double[] cumDistances = buildCumulativeDistances(checkpoints);
++                // Cumulative distances for each checkpoint
++                double[] cumDistances = buildCumulativeDistances(checkpoints);
+ 
+-        for (int i = 0; i < checkpoints.size(); i++) {
+-            double[] point = checkpoints.get(i);
+-            TripSegment segment = TripSegment.builder()
+-                    .trip(trip)
+-                    .segmentOrder(i + 1)
+-                    .latitude(point[0])
+-                    .longitude(point[1])
+-                    .distanceFromStartKm(cumDistances[i] / 1000.0)
+-                    .status(SegmentStatus.PENDING)
+-                    .build();
+-            segments.add(segment);
+-        }
++                for (int i = 0; i < checkpoints.size(); i++) {
++                        double[] point = checkpoints.get(i);
++                        TripSegment segment = TripSegment.builder()
++                                        .trip(trip)
++                                        .segmentOrder(i + 1)
++                                        .latitude(point[0])
++                                        .longitude(point[1])
++                                        .distanceFromStartKm(cumDistances[i] / 1000.0)
++                                        .status(SegmentStatus.PENDING)
++                                        .build();
++                        segments.add(segment);
++                }
+ 
+-        return segments;
+-    }
++                return segments;
++        }
+ 
+-    private double[] buildCumulativeDistances(List<double[]> checkpoints) {
+-        double[] cumDist = new double[checkpoints.size()];
+-        cumDist[0] = 0;
+-        for (int i = 1; i < checkpoints.size(); i++) {
+-            double dLat = Math.toRadians(checkpoints.get(i)[0] - checkpoints.get(i - 1)[0]);
+-            double dLng = Math.toRadians(checkpoints.get(i)[1] - checkpoints.get(i - 1)[1]);
+-            double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+-                    + Math.cos(Math.toRadians(checkpoints.get(i - 1)[0]))
+-                    * Math.cos(Math.toRadians(checkpoints.get(i)[0]))
+-                    * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+-            cumDist[i] = cumDist[i - 1] + 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+-        }
+-        return cumDist;
+-    }
++        private double[] buildCumulativeDistances(List<double[]> checkpoints) {
++                double[] cumDist = new double[checkpoints.size()];
++                cumDist[0] = 0;
++                for (int i = 1; i < checkpoints.size(); i++) {
++                        double dLat = Math.toRadians(checkpoints.get(i)[0] - checkpoints.get(i - 1)[0]);
++                        double dLng = Math.toRadians(checkpoints.get(i)[1] - checkpoints.get(i - 1)[1]);
++                        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
++                                        + Math.cos(Math.toRadians(checkpoints.get(i - 1)[0]))
++                                                        * Math.cos(Math.toRadians(checkpoints.get(i)[0]))
++                                                        * Math.sin(dLng / 2) * Math.sin(dLng / 2);
++                        cumDist[i] = cumDist[i - 1] + 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
++                }
++                return cumDist;
++        }
+ 
+-    private DriverTrip findTripById(UUID tripId) {
+-        return tripRepository.findById(tripId)
+-                .orElseThrow(() -> BusinessException.tripNotFound(tripId));
+-    }
++        private DriverTrip findTripById(UUID tripId) {
++                return tripRepository.findById(tripId)
++                                .orElseThrow(() -> BusinessException.tripNotFound(tripId));
++        }
+ 
+-    private TripResponse mapToResponse(DriverTrip trip) {
+-        List<SegmentResponse> segmentResponses = segmentRepository
+-                .findByTripIdOrderBySegmentOrderAsc(trip.getId())
+-                .stream()
+-                .map(s -> SegmentResponse.builder()
+-                        .id(s.getId())
+-                        .segmentOrder(s.getSegmentOrder())
+-                        .latitude(s.getLatitude())
+-                        .longitude(s.getLongitude())
+-                        .distanceFromStartKm(s.getDistanceFromStartKm())
+-                        .status(s.getStatus())
+-                        .reachedAt(s.getReachedAt())
+-                        .build())
+-                .collect(Collectors.toList());
++        private TripResponse mapToResponse(DriverTrip trip) {
++                List<SegmentResponse> segmentResponses = segmentRepository
++                                .findByTripIdOrderBySegmentOrderAsc(trip.getId())
++                                .stream()
++                                .map(s -> SegmentResponse.builder()
++                                                .id(s.getId())
++                                                .segmentOrder(s.getSegmentOrder())
++                                                .latitude(s.getLatitude())
++                                                .longitude(s.getLongitude())
++                                                .distanceFromStartKm(s.getDistanceFromStartKm())
++                                                .status(s.getStatus())
++                                                .reachedAt(s.getReachedAt())
++                                                .build())
++                                .collect(Collectors.toList());
+ 
+-        int parcelsCount = tripParcelRepository.findByTripId(trip.getId()).size();
++                int parcelsCount = tripParcelRepository.findByTripId(trip.getId()).size();
+ 
+-        return TripResponse.builder()
+-                .id(trip.getId())
+-                .driverId(trip.getDriverId())
+-                .sourceAgencyId(trip.getSourceAgencyId())
+-                .destAgencyId(trip.getDestAgencyId())
+-                .totalDistanceKm(trip.getTotalDistanceKm())
+-                .segmentCount(trip.getSegmentCount())
+-                .status(trip.getStatus())
+-                .segments(segmentResponses)
+-                .parcelsCount(parcelsCount)
+-                .fullPath(trip.getFullPath())
+-                .startedAt(trip.getStartedAt())
+-                .createdAt(trip.getCreatedAt())
+-                .build();
+-    }
++                return TripResponse.builder()
++                                .id(trip.getId())
++                                .driverId(trip.getDriverId())
++                                .sourceAgencyId(trip.getSourceAgencyId())
++                                .sourceAgencyName(trip.getSourceAgencyName())
++                                .destAgencyId(trip.getDestAgencyId())
++                                .destAgencyName(trip.getDestAgencyName())
++                                .totalDistanceKm(trip.getTotalDistanceKm())
++                                .segmentCount(trip.getSegmentCount())
++                                .status(trip.getStatus())
++                                .segments(segmentResponses)
++                                .parcelsCount(parcelsCount)
++                                .fullPath(trip.getFullPath())
++                                .startedAt(trip.getStartedAt())
++                                .createdAt(trip.getCreatedAt())
++                                .build();
++        }
++
++        @Transactional(readOnly = true)
++        public AgentStats getAgentStats(String agentId) {
++                List<DriverTrip> allTrips = tripRepository.findByDriverId(agentId);
++
++                double totalDistance = allTrips.stream()
++                                .filter(t -> t.getStatus() == TripStatus.COMPLETED)
++                                .mapToDouble(DriverTrip::getTotalDistanceKm)
++                                .sum();
++
++                long totalParcelsDelivered = allTrips.stream()
++                                .filter(t -> t.getStatus() == TripStatus.COMPLETED)
++                                .mapToLong(t -> tripParcelRepository.findByTripId(t.getId()).size())
++                                .sum();
++
++                return AgentStats.builder()
++                                .totalTrips(allTrips.size())
++                                .activeTrips(allTrips.stream().filter(t -> t.getStatus() == TripStatus.ACTIVE).count())
++                                .completedTrips(allTrips.stream().filter(t -> t.getStatus() == TripStatus.COMPLETED)
++                                                .count())
++                                .totalDistanceKm(totalDistance)
++                                .totalParcelsDelivered(totalParcelsDelivered)
++                                .build();
++        }
+ }
+Index: DeliveryService/src/main/java/com/example/deliveryservice/listener/ParcelEventListener.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.deliveryservice.listener;\r\n\r\nimport lombok.RequiredArgsConstructor;\r\nimport lombok.extern.slf4j.Slf4j;\r\nimport org.springframework.kafka.annotation.KafkaListener;\r\nimport org.springframework.stereotype.Component;\r\n\r\nimport java.util.Map;\r\n\r\n@Component\r\n@RequiredArgsConstructor\r\n@Slf4j\r\npublic class ParcelEventListener {\r\n\r\n    @KafkaListener(topics = \"parcel-events\", groupId = \"delivery-service-group\")\r\n    public void handleParcelEvent(Object payload) {\r\n        try {\r\n            if (!(payload instanceof Map)) {\r\n                log.warn(\"Received unexpected payload type: {}\", payload.getClass());\r\n                return;\r\n            }\r\n\r\n            @SuppressWarnings(\"unchecked\")\r\n            Map<String, Object> event = (Map<String, Object>) payload;\r\n            String eventType = (String) event.get(\"eventType\");\r\n\r\n            if (eventType == null) {\r\n                log.warn(\"Received event with no eventType field\");\r\n                return;\r\n            }\r\n\r\n            switch (eventType) {\r\n                case \"PaymentCompleted\" -> handlePaymentCompleted(event);\r\n                default -> log.debug(\"Ignored event type: {}\", eventType);\r\n            }\r\n\r\n        } catch (Exception e) {\r\n            log.error(\"Error processing parcel event: {}\", e.getMessage(), e);\r\n        }\r\n    }\r\n\r\n    private void handlePaymentCompleted(Map<String, Object> event) {\r\n        String parcelId = (String) event.get(\"parcelId\");\r\n        log.info(\"PaymentCompleted received for parcelId={}. \" +\r\n                \"Parcel status update to WAITING_FOR_DRIVER is handled by Parcel Service.\", parcelId);\r\n        // Delivery Service has no action on PaymentCompleted.\r\n        // This listener is ready for future events that require delivery action.\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/DeliveryService/src/main/java/com/example/deliveryservice/listener/ParcelEventListener.java b/DeliveryService/src/main/java/com/example/deliveryservice/listener/ParcelEventListener.java
+--- a/DeliveryService/src/main/java/com/example/deliveryservice/listener/ParcelEventListener.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/DeliveryService/src/main/java/com/example/deliveryservice/listener/ParcelEventListener.java	(date 1777010653183)
+@@ -42,7 +42,7 @@
+     private void handlePaymentCompleted(Map<String, Object> event) {
+         String parcelId = (String) event.get("parcelId");
+         log.info("PaymentCompleted received for parcelId={}. " +
+-                "Parcel status update to WAITING_FOR_DRIVER is handled by Parcel Service.", parcelId);
++                "Parcel status update to WAITING_FOR_AGENT is handled by Parcel Service.", parcelId);
+         // Delivery Service has no action on PaymentCompleted.
+         // This listener is ready for future events that require delivery action.
+     }
+Index: DeliveryService/src/main/java/com/example/deliveryservice/service/KafkaEventPublisher.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.deliveryservice.service;\r\n\r\nimport com.example.deliveryservice.event.SegmentReachedEvent;\r\nimport com.example.deliveryservice.event.TripCompletedEvent;\r\nimport lombok.RequiredArgsConstructor;\r\nimport lombok.extern.slf4j.Slf4j;\r\nimport org.springframework.kafka.core.KafkaTemplate;\r\nimport org.springframework.stereotype.Service;\r\n\r\n@Service\r\n@RequiredArgsConstructor\r\n@Slf4j\r\npublic class KafkaEventPublisher {\r\n\r\n    private final KafkaTemplate<String, Object> kafkaTemplate;\r\n\r\n    private static final String PARCEL_EVENTS_TOPIC = \"parcel-events\";\r\n\r\n    public void publishSegmentReached(SegmentReachedEvent event) {\r\n        try {\r\n            kafkaTemplate.send(PARCEL_EVENTS_TOPIC, event.getTripId().toString(), event)\r\n                    .whenComplete((result, ex) -> {\r\n                        if (ex == null) {\r\n                            log.info(\"Published SegmentReached: tripId={}, segment={}/{}\",\r\n                                    event.getTripId(), event.getSegmentOrder(), event.getTotalSegments());\r\n                        } else {\r\n                            log.error(\"Failed to publish SegmentReached: tripId={}\", event.getTripId(), ex);\r\n                        }\r\n                    });\r\n        } catch (Exception e) {\r\n            log.error(\"Error publishing SegmentReached event\", e);\r\n        }\r\n    }\r\n\r\n    public void publishTripCompleted(TripCompletedEvent event) {\r\n        try {\r\n            kafkaTemplate.send(PARCEL_EVENTS_TOPIC, event.getTripId().toString(), event)\r\n                    .whenComplete((result, ex) -> {\r\n                        if (ex == null) {\r\n                            log.info(\"Published TripCompleted: tripId={}\", event.getTripId());\r\n                        } else {\r\n                            log.error(\"Failed to publish TripCompleted: tripId={}\", event.getTripId(), ex);\r\n                        }\r\n                    });\r\n        } catch (Exception e) {\r\n            log.error(\"Error publishing TripCompleted event\", e);\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/DeliveryService/src/main/java/com/example/deliveryservice/service/KafkaEventPublisher.java b/DeliveryService/src/main/java/com/example/deliveryservice/service/KafkaEventPublisher.java
+--- a/DeliveryService/src/main/java/com/example/deliveryservice/service/KafkaEventPublisher.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/DeliveryService/src/main/java/com/example/deliveryservice/service/KafkaEventPublisher.java	(date 1777010668287)
+@@ -2,6 +2,7 @@
+ 
+ import com.example.deliveryservice.event.SegmentReachedEvent;
+ import com.example.deliveryservice.event.TripCompletedEvent;
++import com.example.deliveryservice.event.TripStartedEvent;
+ import lombok.RequiredArgsConstructor;
+ import lombok.extern.slf4j.Slf4j;
+ import org.springframework.kafka.core.KafkaTemplate;
+@@ -46,4 +47,19 @@
+             log.error("Error publishing TripCompleted event", e);
+         }
+     }
++
++    public void publishTripStarted(TripStartedEvent event) {
++        try {
++            kafkaTemplate.send(PARCEL_EVENTS_TOPIC, event.getTripId().toString(), event)
++                    .whenComplete((result, ex) -> {
++                        if (ex == null) {
++                            log.info("Published TripStarted: tripId={}", event.getTripId());
++                        } else {
++                            log.error("Failed to publish TripStarted: tripId={}", event.getTripId(), ex);
++                        }
++                    });
++        } catch (Exception e) {
++            log.error("Error publishing TripStarted event", e);
++        }
++    }
+ }
+\ No newline at end of file
+Index: UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.usermanagementservice.service;\r\n\r\nimport com.example.usermanagementservice.dto.*;\r\nimport com.example.usermanagementservice.entity.User;\r\nimport com.example.usermanagementservice.enums.Role;\r\nimport com.example.usermanagementservice.repository.UserRepo;\r\nimport lombok.AllArgsConstructor;\r\nimport org.slf4j.Logger;\r\nimport org.slf4j.LoggerFactory;\r\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\r\nimport org.springframework.security.crypto.password.PasswordEncoder;\r\nimport org.springframework.stereotype.Service;\r\n\r\nimport java.util.Date;\r\nimport java.util.List;\r\nimport java.util.UUID;\r\nimport java.util.stream.Collectors;\r\n\r\n@Service\r\n@AllArgsConstructor\r\npublic class UserService {\r\n\r\n    private final UserRepo userRepo;\r\n    private final PasswordEncoder passwordEncoder;\r\n    private final Logger logger = LoggerFactory.getLogger(getClass());\r\n\r\n    public User createUser(User user) {\r\n        return userRepo.save(user);\r\n    }\r\n\r\n    public User getUserByEmail(String email) {\r\n        return userRepo.findByEmailAndIsDeletedFalse(email);\r\n    }\r\n\r\n    public boolean existsByEmail(String email) {\r\n        return userRepo.existsByEmail(email);\r\n    }\r\n\r\n    public boolean existsByPhoneNumber(String phoneNumber) {\r\n        return userRepo.existsByPhoneNumber(phoneNumber);\r\n    }\r\n\r\n    public UserResponse getUserById(UUID userId) {\r\n        User user = findActiveUserById(userId);\r\n        return mapToUserResponse(user);\r\n    }\r\n\r\n    public UserContactResponse getUserContactById(UUID userId) {\r\n        User user = findActiveUserById(userId);\r\n        return UserContactResponse.builder()\r\n                .userId(user.getUserId())\r\n                .firstName(user.getFirstName())\r\n                .lastName(user.getLastName())\r\n                .email(user.getEmail())\r\n                .phoneNumber(user.getPhoneNumber())\r\n                .build();\r\n    }\r\n\r\n    public UserResponse updateUser(UUID userId, UpdateUserRequest request) {\r\n        User user = findActiveUserById(userId);\r\n\r\n        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());\r\n        if (request.getLastName() != null) user.setLastName(request.getLastName());\r\n        if (request.getAddress() != null) user.setAddress(request.getAddress());\r\n\r\n        if (request.getPhoneNumber() != null &&\r\n                !request.getPhoneNumber().equals(user.getPhoneNumber())) {\r\n            if (userRepo.existsByPhoneNumber(request.getPhoneNumber())) {\r\n                throw new RuntimeException(\"Phone number already in use\");\r\n            }\r\n            user.setPhoneNumber(request.getPhoneNumber());\r\n        }\r\n\r\n        user.setUpdatedAt(new Date());\r\n        return mapToUserResponse(userRepo.save(user));\r\n    }\r\n\r\n    public void changePassword(UUID userId, ChangePasswordRequest request) {\r\n        User user = findActiveUserById(userId);\r\n\r\n        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {\r\n            throw new RuntimeException(\"Current password is incorrect\");\r\n        }\r\n\r\n        user.setPassword(passwordEncoder.encode(request.getNewPassword()));\r\n        user.setUpdatedAt(new Date());\r\n        userRepo.save(user);\r\n        logger.info(\"Password changed for userId={}\", userId);\r\n    }\r\n\r\n    public void softDeleteUser(UUID userId) {\r\n        User user = findActiveUserById(userId);\r\n        user.setDeleted(true);\r\n        user.setUpdatedAt(new Date());\r\n        userRepo.save(user);\r\n        logger.info(\"User soft deleted: userId={}\", userId);\r\n    }\r\n\r\n    public List<UserResponse> getAllUsers() {\r\n        return userRepo.findAllByIsDeletedFalse()\r\n                .stream()\r\n                .map(this::mapToUserResponse)\r\n                .collect(Collectors.toList());\r\n    }\r\n\r\n    public List<UserResponse> getUsersByRole(Role role) {\r\n        return userRepo.findByRoleAndIsDeletedFalse(role)\r\n                .stream()\r\n                .map(this::mapToUserResponse)\r\n                .collect(Collectors.toList());\r\n    }\r\n\r\n    private User findActiveUserById(UUID userId) {\r\n        return userRepo.findById(userId)\r\n                .filter(u -> !u.isDeleted())\r\n                .orElseThrow(() -> {\r\n                    logger.warn(\"User not found or deleted: userId={}\", userId);\r\n                    return new RuntimeException(\"User not found with id: \" + userId);\r\n                });\r\n    }\r\n\r\n    private UserResponse mapToUserResponse(User user) {\r\n        return UserResponse.builder()\r\n                .userId(user.getUserId())\r\n                .firstName(user.getFirstName())\r\n                .lastName(user.getLastName())\r\n                .email(user.getEmail())\r\n                .phoneNumber(user.getPhoneNumber())\r\n                .address(user.getAddress())\r\n                .role(user.getRole())\r\n                .build();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java b/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java
+--- a/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java	(date 1777010668472)
+@@ -25,9 +25,22 @@
+     private final Logger logger = LoggerFactory.getLogger(getClass());
+ 
+     public User createUser(User user) {
++        if (user.getRole() == Role.AGENT) {
++            user.setVerificationStatus(com.example.usermanagementservice.enums.VerificationStatus.PENDING);
++        } else {
++            user.setVerificationStatus(com.example.usermanagementservice.enums.VerificationStatus.VERIFIED);
++        }
+         return userRepo.save(user);
+     }
+ 
++    public void verifyUser(UUID userId, com.example.usermanagementservice.enums.VerificationStatus status) {
++        User user = findActiveUserById(userId);
++        user.setVerificationStatus(status);
++        user.setUpdatedAt(new Date());
++        userRepo.save(user);
++        logger.info("User {} verification status updated to {}", userId, status);
++    }
++
+     public User getUserByEmail(String email) {
+         return userRepo.findByEmailAndIsDeletedFalse(email);
+     }
+Index: UserManagementService/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <modelVersion>4.0.0</modelVersion>\r\n    <parent>\r\n        <groupId>org.springframework.boot</groupId>\r\n        <artifactId>spring-boot-starter-parent</artifactId>\r\n        <version>4.0.5</version>\r\n        <relativePath/> <!-- lookup parent from repository -->\r\n    </parent>\r\n    <groupId>com.example</groupId>\r\n    <artifactId>UserManagementService</artifactId>\r\n    <version>0.0.1-SNAPSHOT</version>\r\n    <name>UserManagementService</name>\r\n    <description>UserManagementService</description>\r\n    <url/>\r\n    <licenses>\r\n        <license/>\r\n    </licenses>\r\n    <developers>\r\n        <developer/>\r\n    </developers>\r\n    <scm>\r\n        <connection/>\r\n        <developerConnection/>\r\n        <tag/>\r\n        <url/>\r\n    </scm>\r\n    <properties>\r\n        <java.version>21</java.version>\r\n        <spring-cloud.version>2025.1.1</spring-cloud.version>\r\n    </properties>\r\n\r\n    <dependencyManagement>\r\n        <dependencies>\r\n            <dependency>\r\n                <groupId>org.springframework.cloud</groupId>\r\n                <artifactId>spring-cloud-dependencies</artifactId>\r\n                <version>${spring-cloud.version}</version>\r\n                <type>pom</type>\r\n                <scope>import</scope>\r\n            </dependency>\r\n        </dependencies>\r\n    </dependencyManagement>\r\n    <dependencies>\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-test</artifactId>\r\n            <scope>test</scope>\r\n        </dependency>\r\n\r\n        <!-- Spring Boot Web -->\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-web</artifactId>\r\n        </dependency>\r\n\r\n        <!-- Spring Data JPA -->\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-data-jpa</artifactId>\r\n        </dependency>\r\n\r\n        <!-- MySQL Driver -->\r\n        <dependency>\r\n            <groupId>com.mysql</groupId>\r\n            <artifactId>mysql-connector-j</artifactId>\r\n            <scope>runtime</scope>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>org.springframework.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>org.springframework.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-openfeign</artifactId>\r\n        </dependency>\r\n\r\n        <!-- Kafka -->\r\n        <dependency>\r\n            <groupId>org.springframework.kafka</groupId>\r\n            <artifactId>spring-kafka</artifactId>\r\n        </dependency>\r\n\r\n        <!-- Lombok -->\r\n        <dependency>\r\n            <groupId>org.projectlombok</groupId>\r\n            <artifactId>lombok</artifactId>\r\n            <optional>true</optional>\r\n        </dependency>\r\n\r\n        <!-- Validation -->\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-validation</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-security</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.jsonwebtoken</groupId>\r\n            <artifactId>jjwt-api</artifactId>\r\n            <version>0.12.3</version>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.jsonwebtoken</groupId>\r\n            <artifactId>jjwt-impl</artifactId>\r\n            <version>0.12.3</version>\r\n            <scope>runtime</scope>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>io.jsonwebtoken</groupId>\r\n            <artifactId>jjwt-jackson</artifactId>\r\n            <version>0.12.3</version>\r\n            <scope>runtime</scope>\r\n        </dependency>\r\n    </dependencies>\r\n\r\n    <build>\r\n        <plugins>\r\n            <plugin>\r\n                <groupId>org.springframework.boot</groupId>\r\n                <artifactId>spring-boot-maven-plugin</artifactId>\r\n            </plugin>\r\n        </plugins>\r\n    </build>\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/UserManagementService/pom.xml b/UserManagementService/pom.xml
+--- a/UserManagementService/pom.xml	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/UserManagementService/pom.xml	(date 1777010668504)
+@@ -133,6 +133,27 @@
+             <plugin>
+                 <groupId>org.springframework.boot</groupId>
+                 <artifactId>spring-boot-maven-plugin</artifactId>
++                <configuration>
++                    <excludes>
++                        <exclude>
++                            <groupId>org.projectlombok</groupId>
++                            <artifactId>lombok</artifactId>
++                        </exclude>
++                    </excludes>
++                </configuration>
++            </plugin>
++            <plugin>
++                <groupId>org.apache.maven.plugins</groupId>
++                <artifactId>maven-compiler-plugin</artifactId>
++                <configuration>
++                    <annotationProcessorPaths>
++                        <path>
++                            <groupId>org.projectlombok</groupId>
++                            <artifactId>lombok</artifactId>
++                            <version>${lombok.version}</version>
++                        </path>
++                    </annotationProcessorPaths>
++                </configuration>
+             </plugin>
+         </plugins>
+     </build>
+Index: UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.usermanagementservice.config;\r\n\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.context.annotation.Bean;\r\nimport org.springframework.context.annotation.Configuration;\r\nimport org.springframework.security.authentication.AuthenticationManager;\r\nimport org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;\r\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\r\nimport org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;\r\nimport org.springframework.security.config.http.SessionCreationPolicy;\r\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\r\nimport org.springframework.security.crypto.password.PasswordEncoder;\r\nimport org.springframework.security.web.SecurityFilterChain;\r\nimport org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;\r\n\r\n@Configuration\r\n@EnableWebSecurity\r\npublic class SecurityConfig {\r\n\r\n    @Autowired\r\n    private GatewayAuthenticationFilter gatewayAuthenticationFilter;\r\n\r\n    @Bean\r\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\r\n        http.csrf(csrf -> csrf.disable())\r\n                .authorizeHttpRequests(auth -> auth\r\n                        // Public endpoints - no authentication required\r\n                        .requestMatchers(\"/auth/**\", \"/api/users/*/contact\")\r\n                        .permitAll()\r\n\r\n                        // All other requests require authentication\r\n                        .anyRequest().authenticated()\r\n                )\r\n                .sessionManagement(session -> session\r\n                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)\r\n                )\r\n                .addFilterBefore(gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);\r\n\r\n\r\n        return http.build();\r\n    }\r\n\r\n    @Bean\r\n    public PasswordEncoder passwordEncoder() {\r\n        return new BCryptPasswordEncoder();\r\n    }\r\n\r\n    @Bean\r\n    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {\r\n        return config.getAuthenticationManager();\r\n    }\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java b/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java
+--- a/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java	(date 1777010652992)
+@@ -25,7 +25,7 @@
+         http.csrf(csrf -> csrf.disable())
+                 .authorizeHttpRequests(auth -> auth
+                         // Public endpoints - no authentication required
+-                        .requestMatchers("/auth/**", "/api/users/*/contact")
++                        .requestMatchers("/logistics/auth/**", "/api/users/*/contact")
+                         .permitAll()
+ 
+                         // All other requests require authentication
+Index: ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.logistics_tracking.entity;\r\n\r\nimport com.example.logistics_tracking.enums.ParcelStatus;\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\nimport java.math.BigDecimal;\r\nimport java.time.LocalDateTime;\r\nimport java.util.UUID;\r\n\r\n@Entity\r\n@Table(name = \"parcels\")\r\n@Getter\r\n@Setter\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\npublic class Parcel {\r\n\r\n    @Id\r\n    @GeneratedValue(strategy = GenerationType.UUID)\r\n    private String id;\r\n\r\n    @Column(nullable = false)\r\n    private UUID userId;\r\n\r\n    // Source: Either agency OR manual address\r\n    @ManyToOne(fetch = FetchType.LAZY)\r\n    @JoinColumn(name = \"source_agency_id\")\r\n    private Agency sourceAgency;\r\n\r\n    @Column(nullable = false)\r\n    private Double sourceLatitude;\r\n\r\n    @Column(nullable = false)\r\n    private Double sourceLongitude;\r\n\r\n    // Destination: Either agency OR manual address\r\n    @ManyToOne(fetch = FetchType.LAZY)\r\n    @JoinColumn(name = \"dest_agency_id\")\r\n    private Agency destAgency;\r\n\r\n    @Column(nullable = false)\r\n    private Double destLatitude;\r\n\r\n    @Column(nullable = false)\r\n    private Double destLongitude;\r\n\r\n    @Column(nullable = false)\r\n    private Double weight;\r\n\r\n    @Column(nullable = false)\r\n    private Integer fragility;\r\n\r\n    @Enumerated(EnumType.STRING)\r\n    @Column(nullable = false)\r\n    private ParcelStatus status;\r\n\r\n    @Column(precision = 10, scale = 2)\r\n    private BigDecimal estimatedCost;\r\n\r\n    private LocalDateTime estimatedDeliveryTime;\r\n\r\n    private LocalDateTime createdAt;\r\n    private LocalDateTime updatedAt;\r\n\r\n    @PrePersist\r\n    protected void onCreate() {\r\n        createdAt = LocalDateTime.now();\r\n        updatedAt = LocalDateTime.now();\r\n        if (status == null) {\r\n            status = ParcelStatus.PENDING_PAYMENT;\r\n        }\r\n    }\r\n\r\n    @PreUpdate\r\n    protected void onUpdate() {\r\n        updatedAt = LocalDateTime.now();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java b/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java
+--- a/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/ParcelService/src/main/java/com/example/logistics_tracking/entity/Parcel.java	(date 1777010653019)
+@@ -45,6 +45,12 @@
+     @Column(nullable = false)
+     private Double destLongitude;
+ 
++    @Column(nullable = false)
++    private String receiverName;
++
++    @Column(nullable = false)
++    private String receiverPhone;
++
+     @Column(nullable = false)
+     private Double weight;
+ 
+Index: UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.usermanagementservice.entity;\r\n\r\nimport com.example.usermanagementservice.enums.Role;\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\n\r\nimport java.util.Date;\r\nimport java.util.UUID;\r\n\r\n@Entity\r\n@AllArgsConstructor\r\n@NoArgsConstructor\r\n@Builder\r\n@Getter\r\n@Setter\r\n@Table(name = \"User\")\r\npublic class User {\r\n    @Id\r\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\r\n    private UUID userId;\r\n\r\n    private String firstName;\r\n    private String lastName;\r\n    private String email;\r\n    private String password;\r\n    private String phoneNumber;\r\n    private String address;\r\n    private Date createdAt;\r\n    private Date updatedAt;\r\n    private boolean isDeleted;\r\n\r\n    @Enumerated(EnumType.STRING)\r\n    private Role role;\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java b/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java
+--- a/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/UserManagementService/src/main/java/com/example/usermanagementservice/entity/User.java	(date 1777010653043)
+@@ -1,6 +1,7 @@
+ package com.example.usermanagementservice.entity;
+ 
+ import com.example.usermanagementservice.enums.Role;
++import com.example.usermanagementservice.enums.VerificationStatus;
+ import jakarta.persistence.*;
+ import lombok.*;
+ 
+@@ -16,7 +17,7 @@
+ @Table(name = "User")
+ public class User {
+     @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    @GeneratedValue(strategy = GenerationType.UUID)
+     private UUID userId;
+ 
+     private String firstName;
+@@ -32,4 +33,32 @@
+     @Enumerated(EnumType.STRING)
+     private Role role;
+ 
++    @Enumerated(EnumType.STRING)
++    @Builder.Default
++    private VerificationStatus verificationStatus = VerificationStatus.VERIFIED;
++
++    public UUID getUserId() { return userId; }
++    public void setUserId(UUID userId) { this.userId = userId; }
++    public String getFirstName() { return firstName; }
++    public void setFirstName(String firstName) { this.firstName = firstName; }
++    public String getLastName() { return lastName; }
++    public void setLastName(String lastName) { this.lastName = lastName; }
++    public String getEmail() { return email; }
++    public void setEmail(String email) { this.email = email; }
++    public String getPassword() { return password; }
++    public void setPassword(String password) { this.password = password; }
++    public String getPhoneNumber() { return phoneNumber; }
++    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
++    public String getAddress() { return address; }
++    public void setAddress(String address) { this.address = address; }
++    public Date getCreatedAt() { return createdAt; }
++    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
++    public Date getUpdatedAt() { return updatedAt; }
++    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
++    public boolean isDeleted() { return isDeleted; }
++    public void setDeleted(boolean deleted) { isDeleted = deleted; }
++    public Role getRole() { return role; }
++    public void setRole(Role role) { this.role = role; }
++    public VerificationStatus getVerificationStatus() { return verificationStatus; }
++    public void setVerificationStatus(VerificationStatus verificationStatus) { this.verificationStatus = verificationStatus; }
+ }
+Index: DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.deliveryservice.entity;\r\n\r\nimport com.example.deliveryservice.enums.TripStatus;\r\nimport jakarta.persistence.*;\r\nimport lombok.*;\r\nimport org.hibernate.annotations.JdbcTypeCode;\r\nimport org.hibernate.type.SqlTypes; \r\n\r\nimport java.time.Instant;\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\nimport java.util.UUID;\r\n\r\n@Entity\r\n@Table(name = \"driver_trips\")\r\n@Getter\r\n@Setter\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\n@Builder\r\npublic class DriverTrip {\r\n\r\n    @Id\r\n    private UUID id;\r\n\r\n    @Column(nullable = false)\r\n    private String driverId;\r\n\r\n    @Column(nullable = false)\r\n    private UUID sourceAgencyId;\r\n\r\n    @Column(nullable = false)\r\n    private UUID destAgencyId;\r\n\r\n    @Column(nullable = false)\r\n    private Double sourceLatitude;\r\n\r\n    @Column(nullable = false)\r\n    private Double sourceLongitude;\r\n\r\n    @Column(nullable = false)\r\n    private Double destLatitude;\r\n\r\n    @Column(nullable = false)\r\n    private Double destLongitude;\r\n\r\n    @Column(nullable = false)\r\n    private Double totalDistanceKm;\r\n\r\n    @Column(nullable = false)\r\n    private Integer segmentCount;\r\n\r\n    @Enumerated(EnumType.STRING)\r\n    @Column(nullable = false)\r\n    private TripStatus status;\r\n\r\n    @JdbcTypeCode(SqlTypes.JSON)\r\n    @Column(columnDefinition = \"json\")\r\n    @Builder.Default\r\n    private List<double[]> fullPath = new ArrayList<>();\r\n\r\n    @OneToMany(mappedBy = \"trip\", cascade = CascadeType.ALL, orphanRemoval = true)\r\n    @Builder.Default\r\n    private List<TripSegment> segments = new ArrayList<>();\r\n\r\n    @OneToMany(mappedBy = \"trip\", cascade = CascadeType.ALL, orphanRemoval = true)\r\n    @Builder.Default\r\n    private List<TripParcel> parcels = new ArrayList<>();\r\n\r\n    private Instant startedAt;\r\n    private Instant completedAt;\r\n    private Instant createdAt;\r\n    private Instant updatedAt;\r\n\r\n    @PrePersist\r\n    void onCreate() {\r\n        if (id == null) id = UUID.randomUUID();\r\n        Instant now = Instant.now();\r\n        createdAt = now;\r\n        updatedAt = now;\r\n        if (status == null) status = TripStatus.COLLECTING;\r\n    }\r\n\r\n    @PreUpdate\r\n    void onUpdate() {\r\n        updatedAt = Instant.now();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java b/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java
+--- a/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/DeliveryService/src/main/java/com/example/deliveryservice/entity/DriverTrip.java	(date 1777010668444)
+@@ -29,9 +29,13 @@
+     @Column(nullable = false)
+     private UUID sourceAgencyId;
+ 
++    private String sourceAgencyName;
++
+     @Column(nullable = false)
+     private UUID destAgencyId;
+ 
++    private String destAgencyName;
++
+     @Column(nullable = false)
+     private Double sourceLatitude;
+ 
+Index: ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.logistics_tracking.dto;\r\n\r\nimport com.fasterxml.jackson.annotation.JsonFormat;\r\nimport com.example.logistics_tracking.enums.ParcelStatus;\r\nimport lombok.*;\r\nimport java.math.BigDecimal;\r\nimport java.time.LocalDateTime;\r\nimport java.util.UUID;\r\n\r\n@Data\r\n@Builder\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\npublic class ParcelResponse {\r\n\r\n    private String id;\r\n    private UUID userId;\r\n\r\n    private String sourceAgencyId;\r\n    private String sourceAgencyName;\r\n    private String sourceManualAddress;\r\n    private Double sourceLatitude;\r\n    private Double sourceLongitude;\r\n\r\n    private String destAgencyId;\r\n    private String destAgencyName;\r\n    private String destManualAddress;\r\n    private Double destLatitude;\r\n    private Double destLongitude;\r\n\r\n    private Double weight;\r\n    private Integer fragility;\r\n    private ParcelStatus status;\r\n    private BigDecimal estimatedCost;\r\n\r\n    @JsonFormat(pattern = \"yyyy-MM-dd'T'HH:mm:ss\")\r\n    private LocalDateTime estimatedDeliveryTime;\r\n\r\n    @JsonFormat(pattern = \"yyyy-MM-dd'T'HH:mm:ss\")\r\n    private LocalDateTime createdAt;\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java b/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java
+--- a/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelResponse.java	(date 1777010668554)
+@@ -28,6 +28,9 @@
+     private Double destLatitude;
+     private Double destLongitude;
+ 
++    private String receiverName;
++    private String receiverPhone;
++
+     private Double weight;
+     private Integer fragility;
+     private ParcelStatus status;
+Index: ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.logistics_tracking.dto;\r\n\r\nimport jakarta.validation.constraints.*;\r\nimport lombok.*;\r\n\r\nimport java.util.UUID;\r\n\r\n@Data\r\n@Builder\r\n@NoArgsConstructor\r\n@AllArgsConstructor\r\npublic class ParcelRequest {\r\n\r\n    @NotBlank(message = \"User ID is required\")\r\n    private UUID userId;\r\n\r\n    @NotBlank(message = \"Source agency ID is required\")\r\n    private String sourceAgencyId;\r\n\r\n    @NotBlank(message = \"Destination agency ID is required\")\r\n    private String destAgencyId;\r\n\r\n    @NotNull(message = \"Weight is required\")\r\n    @DecimalMin(value = \"0.1\", message = \"Weight must be at least 0.1 kg\")\r\n    @DecimalMax(value = \"100.0\", message = \"Weight cannot exceed 100 kg\")\r\n    private Double weight;\r\n\r\n    @NotNull(message = \"Fragility level is required\")\r\n    @Min(value = 1, message = \"Fragility must be at least 1\")\r\n    @Max(value = 10, message = \"Fragility cannot exceed 10\")\r\n    private Integer fragility;\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java b/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java
+--- a/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java	(revision 7174ff058bdca73776b43940ee90c90f231f1172)
++++ b/ParcelService/src/main/java/com/example/logistics_tracking/dto/ParcelRequest.java	(date 1777010668582)
+@@ -11,7 +11,7 @@
+ @AllArgsConstructor
+ public class ParcelRequest {
+ 
+-    @NotBlank(message = "User ID is required")
++    @NotNull(message = "User ID is required")
+     private UUID userId;
+ 
+     @NotBlank(message = "Source agency ID is required")
+@@ -29,4 +29,10 @@
+     @Min(value = 1, message = "Fragility must be at least 1")
+     @Max(value = 10, message = "Fragility cannot exceed 10")
+     private Integer fragility;
++
++    @NotBlank(message = "Receiver name is required")
++    private String receiverName;
++
++    @NotBlank(message = "Receiver phone is required")
++    private String receiverPhone;
+ }
+\ No newline at end of file
