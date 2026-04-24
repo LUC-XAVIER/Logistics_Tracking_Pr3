@@ -5,7 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ce47166a-8462-4f86-ae5a-a6b6309087cb" name="Changes" comment="fixed some minor implementation mistakes">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/bc93abd9-1cc6-4406-b6e0-07717d8aac44.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/bc93abd9-1cc6-4406-b6e0-07717d8aac44.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserManagementService/src/main/java/com/example/usermanagementservice/service/UserService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,8 +132,24 @@
         <option value="SpringBootApplicationConfigurationType" />
       </set>
     </option>
+    <option name="configurationStatuses">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <map>
+              <entry key="ApiGatewayApplication" value="STOPPED" />
+              <entry key="DeliveryServiceApplication" value="FAILED" />
+              <entry key="LogisticsTrackingApplication" value="STOPPED" />
+              <entry key="PaymentServiceApplication" value="FAILED" />
+              <entry key="ServiceRegistryApplication" value="STOPPED" />
+              <entry key="UserManagementServiceApplication" value="STOPPED" />
+            </map>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Spring Boot.ApiGatewayApplication">
     <configuration name="ApiGatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="API_Gateway" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.api_gateway.ApiGatewayApplication" />
