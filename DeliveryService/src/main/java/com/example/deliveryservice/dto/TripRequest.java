@@ -18,6 +18,10 @@ public class TripRequest {
     @NotNull(message = "Source agency ID is required")
     private UUID sourceAgencyId;
 
+    private String sourceAgencyName;
+
     @NotNull(message = "Destination agency ID is required")
     private UUID destAgencyId;
+
+    private String destAgencyName;
 }

@@ -16,7 +16,9 @@ public class TripResponse {
     private UUID id;
     private String driverId;
     private UUID sourceAgencyId;
+    private String sourceAgencyName;
     private UUID destAgencyId;
+    private String destAgencyName;
     private Double totalDistanceKm;
     private Integer segmentCount;
     private TripStatus status;

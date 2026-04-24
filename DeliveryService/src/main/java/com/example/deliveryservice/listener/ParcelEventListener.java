@@ -42,7 +42,7 @@ public class ParcelEventListener {
     private void handlePaymentCompleted(Map<String, Object> event) {
         String parcelId = (String) event.get("parcelId");
         log.info("PaymentCompleted received for parcelId={}. " +
-                "Parcel status update to WAITING_FOR_DRIVER is handled by Parcel Service.", parcelId);
+                "Parcel status update to WAITING_FOR_AGENT is handled by Parcel Service.", parcelId);
         // Delivery Service has no action on PaymentCompleted.
         // This listener is ready for future events that require delivery action.
     }

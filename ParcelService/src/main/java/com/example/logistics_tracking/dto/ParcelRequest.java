@@ -11,7 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ParcelRequest {
 
-    @NotBlank(message = "User ID is required")
+    @NotNull(message = "User ID is required")
     private UUID userId;
 
     @NotBlank(message = "Source agency ID is required")
@@ -29,4 +29,10 @@ public class ParcelRequest {
     @Min(value = 1, message = "Fragility must be at least 1")
     @Max(value = 10, message = "Fragility cannot exceed 10")
     private Integer fragility;
+
+    @NotBlank(message = "Receiver name is required")
+    private String receiverName;
+
+    @NotBlank(message = "Receiver phone is required")
+    private String receiverPhone;
 }

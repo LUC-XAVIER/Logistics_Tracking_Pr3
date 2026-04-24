@@ -25,7 +25,20 @@ public class UserService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public User createUser(User user) {
+        if (user.getRole() == Role.AGENT) {
+            user.setVerificationStatus(com.example.usermanagementservice.enums.VerificationStatus.PENDING);
+        } else {
+            user.setVerificationStatus(com.example.usermanagementservice.enums.VerificationStatus.VERIFIED);
+        }
         return userRepo.save(user);
+    }
+
+    public void verifyUser(UUID userId, com.example.usermanagementservice.enums.VerificationStatus status) {
+        User user = findActiveUserById(userId);
+        user.setVerificationStatus(status);
+        user.setUpdatedAt(new Date());
+        userRepo.save(user);
+        logger.info("User {} verification status updated to {}", userId, status);
     }
 
     public User getUserByEmail(String email) {

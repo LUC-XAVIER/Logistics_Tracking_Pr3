@@ -2,6 +2,7 @@ package com.example.deliveryservice.service;
 
 import com.example.deliveryservice.event.SegmentReachedEvent;
 import com.example.deliveryservice.event.TripCompletedEvent;
+import com.example.deliveryservice.event.TripStartedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -44,6 +45,21 @@ public class KafkaEventPublisher {
                     });
         } catch (Exception e) {
             log.error("Error publishing TripCompleted event", e);
+        }
+    }
+
+    public void publishTripStarted(TripStartedEvent event) {
+        try {
+            kafkaTemplate.send(PARCEL_EVENTS_TOPIC, event.getTripId().toString(), event)
+                    .whenComplete((result, ex) -> {
+                        if (ex == null) {
+                            log.info("Published TripStarted: tripId={}", event.getTripId());
+                        } else {
+                            log.error("Failed to publish TripStarted: tripId={}", event.getTripId(), ex);
+                        }
+                    });
+        } catch (Exception e) {
+            log.error("Error publishing TripStarted event", e);
         }
     }
 }

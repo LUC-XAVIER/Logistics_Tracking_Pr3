@@ -60,4 +60,8 @@ public class BusinessException extends RuntimeException {
                 "GEOCODING_FAILED"
         );
     }
+
+    public static BusinessException invalidStatus(String message) {
+        return new BusinessException(message, "INVALID_STATUS");
+    }
 }

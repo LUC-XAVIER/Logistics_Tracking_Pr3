@@ -3,6 +3,9 @@ package com.example.logistics_tracking.service;
 import com.example.logistics_tracking.event.ParcelCreatedEvent;
 import com.example.logistics_tracking.exception.BusinessException;
 import com.example.logistics_tracking.entity.Coordinates;
+import com.example.logistics_tracking.dto.AdminStatsResponse;
+import com.example.logistics_tracking.dto.ParcelQuoteRequest;
+import com.example.logistics_tracking.dto.ParcelQuoteResponse;
 import com.example.logistics_tracking.dto.ParcelRequest;
 import com.example.logistics_tracking.dto.ParcelResponse;
 import com.example.logistics_tracking.entity.Agency;
@@ -41,6 +44,8 @@ public class ParcelService {
                 .destAgency(destAgency)
                 .destLatitude(destAgency.getLatitude())
                 .destLongitude(destAgency.getLongitude())
+                .receiverName(request.getReceiverName())
+                .receiverPhone(request.getReceiverPhone())
                 .weight(request.getWeight())
                 .fragility(request.getFragility())
                 .status(ParcelStatus.PENDING_PAYMENT)
@@ -75,34 +80,59 @@ public class ParcelService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public ParcelQuoteResponse getQuote(ParcelQuoteRequest request) {
+        Agency sourceAgency = agencyService.findById(request.getSourceAgencyId().toString());
+        Agency destAgency = agencyService.findById(request.getDestAgencyId().toString());
+
+        double distance = calculateDistance(
+                sourceAgency.getLatitude(), sourceAgency.getLongitude(),
+                destAgency.getLatitude(), destAgency.getLongitude()
+        );
+
+        BigDecimal cost = calculateCost(distance, request.getWeight(), request.getFragility());
+        LocalDateTime eta = calculateEta(distance, request.getFragility());
+
+        return ParcelQuoteResponse.builder()
+                .estimatedCost(cost)
+                .estimatedDeliveryTime(eta)
+                .distanceKm(distance)
+                .sourceAgencyName(sourceAgency.getName())
+                .destAgencyName(destAgency.getName())
+                .build();
+    }
+
     private void calculateCostAndEta(Parcel parcel) {
         double distance = calculateDistance(
                 parcel.getSourceLatitude(), parcel.getSourceLongitude(),
                 parcel.getDestLatitude(), parcel.getDestLongitude()
         );
 
+        parcel.setEstimatedCost(calculateCost(distance, parcel.getWeight(), parcel.getFragility()));
+        parcel.setEstimatedDeliveryTime(calculateEta(distance, parcel.getFragility()));
+
+        log.debug("Calculated cost: {} XAF, distance: {} km, ETA: {}",
+                parcel.getEstimatedCost(), distance, parcel.getEstimatedDeliveryTime());
+    }
+
+    private BigDecimal calculateCost(double distance, double weight, int fragility) {
         BigDecimal baseCost = BigDecimal.valueOf(5000);
         BigDecimal distanceCost = BigDecimal.valueOf(distance * 100);
-        BigDecimal fragilityCost = BigDecimal.valueOf(parcel.getFragility() * 500);
-        BigDecimal weightCost = BigDecimal.valueOf(parcel.getWeight() * 200);
+        BigDecimal fragilityCost = BigDecimal.valueOf(fragility * 500);
+        BigDecimal weightCost = BigDecimal.valueOf(weight * 200);
 
-        BigDecimal totalCost = baseCost
+        return baseCost
                 .add(distanceCost)
                 .add(fragilityCost)
                 .add(weightCost);
+    }
 
-        parcel.setEstimatedCost(totalCost);
-
+    private LocalDateTime calculateEta(double distance, int fragility) {
         double baseSpeed = 60.0;
-        double adjustedSpeed = baseSpeed * (1 - (parcel.getFragility() / 15.0));
+        double adjustedSpeed = baseSpeed * (1 - (fragility / 15.0));
         double travelHours = distance / adjustedSpeed;
 
-        parcel.setEstimatedDeliveryTime(
-                LocalDateTime.now().plusHours((long) Math.ceil(travelHours))
-        );
-
-        log.debug("Calculated cost: {} XAF, distance: {} km, ETA: {}",
-                totalCost, distance, parcel.getEstimatedDeliveryTime());
+        return LocalDateTime.now().plusHours((long) Math.ceil(travelHours));
     }
 
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -165,6 +195,8 @@ public class ParcelService {
                         parcel.getDestAgency().getName() : null)
                 .destLatitude(parcel.getDestLatitude())
                 .destLongitude(parcel.getDestLongitude())
+                .receiverName(parcel.getReceiverName())
+                .receiverPhone(parcel.getReceiverPhone())
                 .weight(parcel.getWeight())
                 .fragility(parcel.getFragility())
                 .status(parcel.getStatus())
@@ -173,35 +205,103 @@ public class ParcelService {
                 .createdAt(parcel.getCreatedAt())
                 .build();
     }
+
     @Transactional(readOnly = true)
     public UUID getParcelOwner(String parcelId) {
         Parcel parcel = parcelRepository.findById(parcelId)
                 .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
         return parcel.getUserId();
     }
-  public List<ParcelResponse> getAvailableParcels(UUID sourceAgencyId, UUID destAgencyId) {
-    List<Parcel> parcels = parcelRepository.findBySourceAgencyIdAndDestAgencyIdAndStatus(
-      sourceAgencyId,
-      destAgencyId,
-      ParcelStatus.WAITING_FOR_DRIVER
-    );
 
-    return parcels.stream()
-      .map(this::mapToResponse)
-      .collect(Collectors.toList());
-  }
+    public List<ParcelResponse> getAvailableParcels(UUID sourceAgencyId, UUID destAgencyId) {
+        List<Parcel> parcels = parcelRepository.findBySourceAgencyIdAndDestAgencyIdAndStatus(
+                sourceAgencyId,
+                destAgencyId,
+                ParcelStatus.WAITING_FOR_AGENT
+        );
 
-  @Transactional
-  public void updateParcelStatusToWaitingForDriver(String parcelId) {
-      Parcel parcel = parcelRepository.findById(parcelId)
-              .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
-      
-      if (parcel.getStatus() == ParcelStatus.PENDING_PAYMENT) {
-          parcel.setStatus(ParcelStatus.WAITING_FOR_DRIVER);
-          parcelRepository.save(parcel);
-          log.info("Parcel {} status updated to WAITING_FOR_DRIVER", parcelId);
-      } else {
-          log.warn("Parcel {} is not in PENDING_PAYMENT status. Current status: {}", parcelId, parcel.getStatus());
-      }
-  }
+        return parcels.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updateParcelStatusToWaitingForAgent(String parcelId) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
+
+        if (parcel.getStatus() == ParcelStatus.PENDING_PAYMENT) {
+            parcel.setStatus(ParcelStatus.WAITING_FOR_AGENT);
+            parcelRepository.save(parcel);
+            log.info("Parcel {} status updated to WAITING_FOR_AGENT", parcelId);
+        } else {
+            log.warn("Parcel {} is not in PENDING_PAYMENT status. Current status: {}", parcelId, parcel.getStatus());
+        }
+    }
+
+    @Transactional
+    public void updateParcelsToInTransit(List<String> parcelIds) {
+        log.info("Updating {} parcels to IN_TRANSIT", parcelIds.size());
+        for (String id : parcelIds) {
+            parcelRepository.findById(id).ifPresent(p -> {
+                if (p.getStatus() == ParcelStatus.WAITING_FOR_AGENT) {
+                    p.setStatus(ParcelStatus.IN_TRANSIT);
+                    parcelRepository.save(p);
+                    log.debug("Parcel {} status updated to IN_TRANSIT", id);
+                }
+            });
+        }
+    }
+
+    @Transactional
+    public void updateParcelsToDelivered(List<String> parcelIds) {
+        log.info("Updating {} parcels to DELIVERED", parcelIds.size());
+        for (String id : parcelIds) {
+            parcelRepository.findById(id).ifPresent(p -> {
+                if (p.getStatus() == ParcelStatus.IN_TRANSIT) {
+                    p.setStatus(ParcelStatus.DELIVERED);
+                    parcelRepository.save(p);
+                    log.debug("Parcel {} status updated to DELIVERED", id);
+                }
+            });
+        }
+    }
+
+    @Transactional
+    public void cancelParcel(String parcelId) {
+        Parcel parcel = parcelRepository.findById(parcelId)
+                .orElseThrow(() -> BusinessException.parcelNotFound(parcelId));
+        if (!parcel.getStatus().canBeCancelled()) {
+            throw BusinessException.invalidStatus("Cannot cancel parcel in " + parcel.getStatus() + " state");
+        }
+        parcel.setStatus(ParcelStatus.CANCELLED);
+        parcelRepository.save(parcel);
+        log.info("Parcel {} has been cancelled", parcelId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ParcelResponse> getAllParcels() {
+        return parcelRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public AdminStatsResponse getAdminStats() {
+        List<Parcel> allParcels = parcelRepository.findAll();
+        long totalAgencies = agencyService.getAllAgencies().size();
+
+        BigDecimal totalRevenue = allParcels.stream()
+                .filter(p -> p.getStatus() == ParcelStatus.DELIVERED)
+                .map(Parcel::getEstimatedCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return AdminStatsResponse.builder()
+                .totalParcels(allParcels.size())
+                .activeParcels(allParcels.stream().filter(p -> p.getStatus() == ParcelStatus.IN_TRANSIT).count())
+                .deliveredParcels(allParcels.stream().filter(p -> p.getStatus() == ParcelStatus.DELIVERED).count())
+                .totalRevenue(totalRevenue)
+                .totalAgencies(totalAgencies)
+                .build();
+    }
 }
