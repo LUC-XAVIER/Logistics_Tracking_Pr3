@@ -32,7 +32,7 @@ public class ParcelController {
     @PostMapping
     public ResponseEntity<ParcelResponse> create(@Valid @RequestBody CreateParcelRequest request) {
         Parcel parcel = parcelRepository.save(Parcel.builder()
-                .sourceAgencyId(request.sourceAgencyId())
+                .sourceAgencyId(String.valueOf(request.sourceAgencyId()))
                 .destinationAgencyId(request.destinationAgencyId())
                 .sourceAddress(request.sourceAddress())
                 .destinationAddress(request.destinationAddress())
