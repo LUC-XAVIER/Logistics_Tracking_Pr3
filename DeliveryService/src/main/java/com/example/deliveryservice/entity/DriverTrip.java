@@ -29,8 +29,12 @@ public class DriverTrip {
     @Column(nullable = false)
     private UUID sourceAgencyId;
 
+    private String sourceAgencyName;
+
     @Column(nullable = false)
     private UUID destAgencyId;
+
+    private String destAgencyName;
 
     @Column(nullable = false)
     private Double sourceLatitude;

@@ -1,8 +1,10 @@
 package com.example.deliveryservice.controller;
 
+import com.example.deliveryservice.dto.AgentStats;
 import com.example.deliveryservice.dto.AvailableParcelResponse;
 import com.example.deliveryservice.dto.TripRequest;
 import com.example.deliveryservice.dto.TripResponse;
+import com.example.deliveryservice.enums.TripStatus;
 import com.example.deliveryservice.service.TripService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +61,18 @@ public class TripController {
             @PathVariable UUID segmentId) {
         TripResponse response = tripService.markSegmentReached(tripId, segmentId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/agent/{agentId}")
+    public ResponseEntity<List<TripResponse>> getAgentTrips(
+            @PathVariable String agentId,
+            @RequestParam(required = false) TripStatus status) {
+        List<TripResponse> trips = tripService.getTripsByAgent(agentId, status);
+        return ResponseEntity.ok(trips);
+    }
+
+    @GetMapping("/agent/{agentId}/summary")
+    public ResponseEntity<AgentStats> getAgentSummary(@PathVariable String agentId) {
+        return ResponseEntity.ok(tripService.getAgentStats(agentId));
     }
 }

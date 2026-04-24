@@ -2,7 +2,7 @@ package com.example.logistics_tracking.enums;
 
 public enum ParcelStatus {
     PENDING_PAYMENT,
-    WAITING_FOR_DRIVER,
+    WAITING_FOR_AGENT,
     IN_TRANSIT,
     DELIVERED,
     CANCELLED,
@@ -14,7 +14,7 @@ public enum ParcelStatus {
     }
 
     public boolean canBeCancelled() {
-        return this == PENDING_PAYMENT || this == WAITING_FOR_DRIVER;
+        return this == PENDING_PAYMENT || this == WAITING_FOR_AGENT;
     }
 
     public boolean isActiveDelivery() {

@@ -1,5 +1,7 @@
 package com.example.logistics_tracking.controller;
 
+import com.example.logistics_tracking.dto.ParcelQuoteRequest;
+import com.example.logistics_tracking.dto.ParcelQuoteResponse;
 import com.example.logistics_tracking.dto.ParcelRequest;
 import com.example.logistics_tracking.dto.ParcelResponse;
 import com.example.logistics_tracking.enums.ParcelStatus;
@@ -18,6 +20,11 @@ import java.util.UUID;
 public class ParcelController {
 
     private final ParcelService parcelService;
+
+    @GetMapping
+    public ResponseEntity<List<ParcelResponse>> getAllParcels() {
+        return ResponseEntity.ok(parcelService.getAllParcels());
+    }
 
     @PostMapping
     public ResponseEntity<ParcelResponse> createParcel(@Valid @RequestBody ParcelRequest request) {
@@ -54,5 +61,16 @@ public class ParcelController {
     @RequestParam UUID destAgencyId) {
     List<ParcelResponse> parcels = parcelService.getAvailableParcels(sourceAgencyId, destAgencyId);
     return ResponseEntity.ok(parcels);
+  }
+
+  @PostMapping("/quote")
+  public ResponseEntity<ParcelQuoteResponse> getQuote(@Valid @RequestBody ParcelQuoteRequest request) {
+    return ResponseEntity.ok(parcelService.getQuote(request));
+  }
+
+  @PostMapping("/{parcelId}/cancel")
+  public ResponseEntity<Void> cancelParcel(@PathVariable String parcelId) {
+      parcelService.cancelParcel(parcelId);
+      return ResponseEntity.ok().build();
   }
 }

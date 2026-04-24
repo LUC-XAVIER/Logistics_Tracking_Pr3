@@ -28,6 +28,9 @@ public class ParcelResponse {
     private Double destLatitude;
     private Double destLongitude;
 
+    private String receiverName;
+    private String receiverPhone;
+
     private Double weight;
     private Integer fragility;
     private ParcelStatus status;

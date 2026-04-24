@@ -46,6 +46,12 @@ public class Parcel {
     private Double destLongitude;
 
     @Column(nullable = false)
+    private String receiverName;
+
+    @Column(nullable = false)
+    private String receiverPhone;
+
+    @Column(nullable = false)
     private Double weight;
 
     @Column(nullable = false)

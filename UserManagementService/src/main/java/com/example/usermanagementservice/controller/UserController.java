@@ -151,4 +151,20 @@ public class UserController {
             ));
         }
     }
+
+    @PatchMapping("/{userId}/verify")
+    public ResponseEntity<?> verifyUser(@PathVariable UUID userId,
+                                        @RequestParam com.example.usermanagementservice.enums.VerificationStatus status) {
+        try {
+            userService.verifyUser(userId, status);
+            return ResponseEntity.ok(Map.of(
+                    "message", "User verification status updated successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "errorCode", "VERIFICATION_FAILED",
+                    "message", e.getMessage()
+            ));
+        }
+    }
 }
